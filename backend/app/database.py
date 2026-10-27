@@ -13,7 +13,7 @@ SQLAlchemy ORM layer would change.
 import os
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 _DEFAULT_DB = Path(__file__).resolve().parent.parent / "crm.db"
@@ -31,6 +31,34 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+
+def add_missing_columns() -> list[str]:
+    """Add model columns that an older crm.db does not have yet.
+
+    create_all() creates missing tables but never alters existing ones, so a
+    teammate's local DB from before a new column was added would fail with
+    "no such column". This handles the additive case only (no renames or
+    drops); it returns the "table.column" names it added.
+    """
+    added = []
+    inspector = inspect(engine)
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if not inspector.has_table(table.name):
+                continue
+            existing = {c["name"] for c in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name in existing:
+                    continue
+                ddl = f"ALTER TABLE {table.name} ADD COLUMN {column.name} {column.type.compile(engine.dialect)}"
+                if column.default is not None and column.default.is_scalar:
+                    # literal_processor stores enums the same way the ORM does
+                    to_sql = column.type.literal_processor(engine.dialect)
+                    ddl += f" NOT NULL DEFAULT {to_sql(column.default.arg)}"
+                conn.execute(text(ddl))
+                added.append(f"{table.name}.{column.name}")
+    return added
 
 
 def get_db():

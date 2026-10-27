@@ -46,6 +46,38 @@ def test_create_lead_standardizes_and_returns_lead(client):
     assert consent_map == {"marketing": True, "analytics": False}
 
 
+def test_create_lead_with_scoring_inputs(client):
+    body = make_lead(
+        client,
+        lead_origin="landing page",
+        occupation="working professional",
+        total_visits=4,
+        time_on_website_sec="930",
+        pages_per_visit=2.456,
+    )
+    assert body["lead_origin"] == "Landing Page Submission"
+    assert body["occupation"] == "Working Professional"
+    assert body["total_visits"] == 4
+    assert body["time_on_website_sec"] == 930
+    assert body["pages_per_visit"] == 2.46
+
+
+def test_create_lead_scoring_inputs_default_to_unknown(client):
+    body = make_lead(client)
+    assert body["lead_origin"] == "Unknown"
+    assert body["occupation"] == "Unknown"
+    assert body["total_visits"] is None
+    assert body["time_on_website_sec"] is None
+    assert body["pages_per_visit"] is None
+
+
+def test_create_lead_negative_engagement_is_422(client):
+    resp = client.post(
+        "/leads", json={"name": "Jane", "email": "jane@example.com", "total_visits": -2}
+    )
+    assert resp.status_code == 422
+
+
 def test_create_lead_invalid_email_is_422_not_500(client):
     resp = client.post("/leads", json={"name": "Jane", "email": "notanemail"})
     assert resp.status_code == 422

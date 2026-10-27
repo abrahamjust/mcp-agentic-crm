@@ -9,7 +9,15 @@ from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models import CompanySize, Seniority, LeadSource, Bucket, PipelineStage
+from app.models import (
+    Bucket,
+    CompanySize,
+    LeadOrigin,
+    LeadSource,
+    Occupation,
+    PipelineStage,
+    Seniority,
+)
 
 # Interaction vocabulary (plain strings in the DB, validated here)
 InteractionStatus = Literal[
@@ -39,6 +47,13 @@ class LeadCreate(BaseModel):
     notes: Optional[str] = None
     consent: Optional[dict[str, bool]] = None  # {"marketing": true, ...}
 
+    # Agent A scoring inputs; all optional
+    lead_origin: Optional[str] = None  # "Landing Page", "API", "Lead Add Form", ...
+    occupation: Optional[str] = None  # "Working Professional", "Student", ...
+    total_visits: Optional[float] = Field(None, ge=0)
+    time_on_website_sec: Optional[float] = Field(None, ge=0)
+    pages_per_visit: Optional[float] = Field(None, ge=0)
+
 
 class LeadOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -54,6 +69,11 @@ class LeadOut(BaseModel):
     source: LeadSource
     product_interest: Optional[str]
     notes: Optional[str]
+    lead_origin: LeadOrigin
+    occupation: Occupation
+    total_visits: Optional[int]
+    time_on_website_sec: Optional[int]
+    pages_per_visit: Optional[float]
     consent: list[dict[str, Any]]
     pipeline_stage: PipelineStage
     created_at: datetime

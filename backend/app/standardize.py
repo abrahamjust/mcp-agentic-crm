@@ -11,7 +11,7 @@ from typing import Any
 
 import phonenumbers
 
-from app.models import CompanySize, Seniority, LeadSource
+from app.models import CompanySize, LeadOrigin, LeadSource, Occupation, Seniority
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -128,6 +128,27 @@ _SOURCE_MAP = {
     "cold call": LeadSource.COLD_OUTREACH,
     "event": LeadSource.EVENT,
     "conference": LeadSource.EVENT,
+    # Web-analytics channel names (also the vocabulary of Agent A's training
+    # data, which goes through this same function so training and live
+    # scoring see identical categories).
+    "google": LeadSource.WEBSITE,
+    "bing": LeadSource.WEBSITE,
+    "organic search": LeadSource.WEBSITE,
+    "direct traffic": LeadSource.WEBSITE,
+    "pay per click ads": LeadSource.WEBSITE,
+    "olark chat": LeadSource.WEBSITE,
+    "live chat": LeadSource.WEBSITE,
+    "click2call": LeadSource.WEBSITE,
+    "referral sites": LeadSource.WEBSITE,  # sites linking to us, not a person
+    "welingak website": LeadSource.WEBSITE,
+    "blog": LeadSource.WEBSITE,
+    "welearn": LeadSource.WEBSITE,
+    "welearnblog_home": LeadSource.WEBSITE,
+    "press_release": LeadSource.WEBSITE,
+    "reference": LeadSource.REFERRAL,
+    "social media": LeadSource.SOCIAL,
+    "youtubechannel": LeadSource.SOCIAL,
+    "nc_edm": LeadSource.COLD_OUTREACH,  # email direct marketing
 }
 
 
@@ -136,6 +157,62 @@ def normalize_source(raw: str | None) -> LeadSource:
     if not raw:
         return LeadSource.UNKNOWN
     return _SOURCE_MAP.get(raw.strip().lower(), LeadSource.UNKNOWN)
+
+
+_LEAD_ORIGIN_MAP = {
+    "landing page submission": LeadOrigin.LANDING_PAGE,
+    "landing page": LeadOrigin.LANDING_PAGE,
+    "api": LeadOrigin.API,
+    "lead add form": LeadOrigin.LEAD_ADD_FORM,
+    "quick add form": LeadOrigin.LEAD_ADD_FORM,
+    "add form": LeadOrigin.LEAD_ADD_FORM,
+    "manual": LeadOrigin.LEAD_ADD_FORM,
+    "lead import": LeadOrigin.LEAD_IMPORT,
+    "import": LeadOrigin.LEAD_IMPORT,
+}
+
+
+def normalize_lead_origin(raw: str | None) -> LeadOrigin:
+    """'Landing Page' / 'quick add form' / 'API' -> a fixed LeadOrigin value."""
+    if not raw:
+        return LeadOrigin.UNKNOWN
+    return _LEAD_ORIGIN_MAP.get(raw.strip().lower(), LeadOrigin.UNKNOWN)
+
+
+_OCCUPATION_MAP = {
+    "working professional": Occupation.WORKING_PROFESSIONAL,
+    "professional": Occupation.WORKING_PROFESSIONAL,
+    "employed": Occupation.WORKING_PROFESSIONAL,
+    "business owner": Occupation.BUSINESS_OWNER,
+    "businessman": Occupation.BUSINESS_OWNER,
+    "self-employed": Occupation.BUSINESS_OWNER,
+    "student": Occupation.STUDENT,
+    "unemployed": Occupation.UNEMPLOYED,
+    "homemaker": Occupation.HOMEMAKER,
+    "housewife": Occupation.HOMEMAKER,
+    "other": Occupation.OTHER,
+}
+
+
+def normalize_occupation(raw: str | None) -> Occupation:
+    """'working professional' / 'Businessman' -> a fixed Occupation value."""
+    if not raw:
+        return Occupation.UNKNOWN
+    return _OCCUPATION_MAP.get(raw.strip().lower(), Occupation.UNKNOWN)
+
+
+def normalize_count(raw: float | int | None) -> int | None:
+    """Non-negative engagement counter: 3.0 -> 3, blank/negative/NaN -> None."""
+    if raw is None or raw != raw or raw < 0:  # raw != raw is the NaN test
+        return None
+    return int(round(raw))
+
+
+def normalize_rate(raw: float | int | None) -> float | None:
+    """Non-negative ratio such as pages per visit, rounded to 2 dp."""
+    if raw is None or raw != raw or raw < 0:
+        return None
+    return round(float(raw), 2)
 
 
 def normalize_consent(raw_consent: dict[str, bool] | None) -> list[dict[str, Any]]:
@@ -194,4 +271,9 @@ def standardize_lead_input(raw: dict[str, Any]) -> dict[str, Any]:
         "product_interest": clean_optional_text(raw.get("product_interest")),
         "notes": clean_optional_text(raw.get("notes")),
         "consent": normalize_consent(raw.get("consent")),
+        "lead_origin": normalize_lead_origin(raw.get("lead_origin")),
+        "occupation": normalize_occupation(raw.get("occupation")),
+        "total_visits": normalize_count(raw.get("total_visits")),
+        "time_on_website_sec": normalize_count(raw.get("time_on_website_sec")),
+        "pages_per_visit": normalize_rate(raw.get("pages_per_visit")),
     }

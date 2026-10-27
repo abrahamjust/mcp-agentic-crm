@@ -44,6 +44,23 @@ Tests use a throwaway database and never touch `crm.db`.
 | PATCH | `/interactions/{id}/status` | Frontend | Approve / reject / mark executed |
 | GET | `/health` | Everyone | Liveness check |
 
+### Scoring inputs (optional `POST /leads` fields)
+
+Agent A's model uses these. All are optional: a blank one becomes
+`Unknown` / `null` and the model still scores the lead.
+
+| Field | Accepts | Stored as |
+|---|---|---|
+| `lead_origin` | `Landing Page`, `API`, `Lead Add Form`, `Quick Add Form`, `Lead Import` | `Landing Page Submission` / `API` / `Lead Add Form` / `Lead Import` / `Unknown` |
+| `occupation` | `Working Professional`, `Business Owner`/`Businessman`, `Student`, `Unemployed`, `Homemaker`, `Other` | same names, or `Unknown` |
+| `total_visits` | number >= 0 | integer |
+| `time_on_website_sec` | number >= 0 (seconds) | integer |
+| `pages_per_visit` | number >= 0 | float, 2 dp |
+
+`source` also accepts web-analytics channel names (`Google`, `Organic Search`,
+`Direct Traffic`, `Olark Chat`, `Reference`, ...). An existing `crm.db` gets
+the new columns added automatically at startup (`add_missing_columns()`).
+
 Allowed `status` values for an interaction: `pending_approval`, `approved`,
 `rejected`, `executed`, `blocked`, `skipped`. `consent_check`: `passed`,
 `blocked`, `error`.
@@ -72,8 +89,9 @@ lead (or interaction) in the same JSON format the REST API returns
   `log_interaction` -> `POST /leads/{id}/interactions`.
   The request/response shapes are in `app/schemas.py`.
 - **Role 3 (Agent A):** poll `GET /leads?unscored=true`, then PATCH the score.
-  Your dataset's columns must be mapped onto the standardized fields in
-  `app/standardize.py`.
+  The model's inputs are the optional fields below; the training data goes
+  through the same normalizers in `app/standardize.py`, so a value means the
+  same thing in training and in live scoring. See `agent_a/README.md`.
 - **Role 4 (Agent B):** after a restart, `GET /leads?bucket=Hot&actioned=false`
   returns the Hot leads nothing has been logged for yet. Log blocked attempts
   too (`action_type="no_action_consent_blocked"`, `status="blocked"`) so a
@@ -95,6 +113,6 @@ backend/
     standardize.py  input cleaning (email, phone, size, seniority, source, consent)
     events.py       WebSocket broadcast
     database.py     SQLite engine / session
-  tests/            54 tests (standardization, REST, WebSocket)
+  tests/            standardization, REST, WebSocket, DB upgrade
   requirements.txt
 ```
