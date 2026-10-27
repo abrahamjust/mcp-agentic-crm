@@ -14,7 +14,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, Float, DateTime, JSON, Enum, Text, ForeignKey
+from sqlalchemy import Boolean, Column, String, Float, DateTime, JSON, Enum, Text, ForeignKey
 from sqlalchemy.orm import validates
 from sqlalchemy.types import TypeDecorator
 
@@ -145,3 +145,18 @@ class Interaction(Base):
     consent_check = Column(String, nullable=True)
     created_at = Column(UTCDateTime, default=_now, nullable=False)
     updated_at = Column(UTCDateTime, default=_now, onupdate=_now, nullable=False)
+
+
+class AuditLog(Base):
+    """Immutable record of every consent check requested by an agent."""
+
+    __tablename__ = "audit_logs"
+
+    log_id = Column(String, primary_key=True, default=_uuid)
+    lead_id = Column(String, nullable=False, index=True)
+    actor = Column(String, nullable=False)
+    action_attempted = Column(String, nullable=False)
+    purpose_required = Column(String, nullable=False, index=True)
+    consent_on_file = Column(Boolean, nullable=False)
+    result = Column(String, nullable=False)
+    timestamp = Column(UTCDateTime, default=_now, nullable=False, index=True)

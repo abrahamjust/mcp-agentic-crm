@@ -87,6 +87,44 @@ class LeadConsentUpdate(BaseModel):
     consent: dict[str, bool] = Field(min_length=1)
 
 
+class ConsentCheckRequest(BaseModel):
+    lead_id: str = Field(min_length=1)
+    purpose: str = Field(min_length=1)
+    actor: str = Field(default="agent_b", min_length=1)
+    action_attempted: str = Field(default="consent_check", min_length=1)
+
+
+class ConsentCheckOut(BaseModel):
+    lead_id: str
+    purpose: str
+    allowed: bool
+    result: Literal["allowed", "blocked"]
+    reason: str
+    consent_on_file: bool
+    audit_log_id: str
+    timestamp: datetime
+
+
+class AuditLogOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    log_id: str
+    lead_id: str
+    actor: str
+    action_attempted: str
+    purpose_required: str
+    consent_on_file: bool
+    result: str
+    timestamp: datetime
+
+
+class StaleLeadOut(BaseModel):
+    lead_id: str
+    last_activity_at: datetime
+    stale: bool
+    retention_days: int
+
+
 # ---------------------------------------------------------------------------
 # Interactions (agent actions: the `log_interaction` tool)
 # ---------------------------------------------------------------------------

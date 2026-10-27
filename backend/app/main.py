@@ -22,7 +22,8 @@ Real time
 
 Not in this module: check_consent and the audit log (Role 5).
 """
-from datetime import datetime, timezone
+import os
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
@@ -32,17 +33,22 @@ from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
 from app.events import manager
-from app.models import Bucket, Interaction, Lead, PipelineStage
+from app.consent import check_consent
+from app.models import AuditLog, Bucket, Interaction, Lead, PipelineStage
 from app.schemas import (
     InteractionCreate,
     InteractionOut,
     InteractionStatus,
     InteractionStatusUpdate,
+    AuditLogOut,
+    ConsentCheckOut,
+    ConsentCheckRequest,
     LeadConsentUpdate,
     LeadCreate,
     LeadOut,
     LeadScoreUpdate,
     LeadStageUpdate,
+    StaleLeadOut,
 )
 from app.standardize import normalize_consent, standardize_lead_input
 
@@ -152,6 +158,33 @@ def list_leads(
     return query.all()
 
 
+@app.get("/leads/stale", response_model=list[StaleLeadOut])
+def list_stale_leads(
+    days: Optional[int] = Query(None, ge=1, description="Inactivity threshold in days"),
+    db: Session = Depends(get_db),
+):
+    """Flag leads inactive beyond the configured retention period."""
+    retention_days = days if days is not None else int(
+        os.environ.get("CONSENT_RETENTION_DAYS", "90")
+    )
+    cutoff = _now() - timedelta(days=retention_days)
+    leads = (
+        db.query(Lead)
+        .filter(Lead.last_activity_at < cutoff)
+        .order_by(Lead.last_activity_at.asc())
+        .all()
+    )
+    return [
+        StaleLeadOut(
+            lead_id=lead.id,
+            last_activity_at=lead.last_activity_at,
+            stale=True,
+            retention_days=retention_days,
+        )
+        for lead in leads
+    ]
+
+
 @app.get("/leads/{lead_id}", response_model=LeadOut)
 def get_lead(lead_id: str, db: Session = Depends(get_db)):
     return _get_lead(db, lead_id)
@@ -214,6 +247,60 @@ async def update_lead_consent(
 
     await manager.broadcast("lead_consent_updated", _lead_json(lead))
     return lead
+
+
+# ---------------------------------------------------------------------------
+# Consent and compliance (Role 5)
+# ---------------------------------------------------------------------------
+
+
+@app.post("/consent/check", response_model=ConsentCheckOut)
+def consent_check(
+    payload: ConsentCheckRequest, db: Session = Depends(get_db)
+):
+    """Check purpose-specific consent and persist an audit entry."""
+    purpose = payload.purpose.strip().lower()
+    if not purpose:
+        raise HTTPException(status_code=422, detail="Purpose is required")
+    decision = check_consent(db, payload.lead_id, purpose)
+    result = "allowed" if decision.allowed else "blocked"
+    audit = AuditLog(
+        lead_id=payload.lead_id,
+        actor=payload.actor,
+        action_attempted=payload.action_attempted,
+        purpose_required=purpose,
+        consent_on_file=decision.consent_on_file,
+        result=result,
+    )
+    db.add(audit)
+    db.commit()
+    db.refresh(audit)
+    return ConsentCheckOut(
+        lead_id=payload.lead_id,
+        purpose=purpose,
+        allowed=decision.allowed,
+        result=result,
+        reason=decision.reason,
+        consent_on_file=decision.consent_on_file,
+        audit_log_id=audit.log_id,
+        timestamp=audit.timestamp,
+    )
+
+
+@app.get("/audit-log", response_model=list[AuditLogOut])
+def list_audit_logs(
+    lead_id: Optional[str] = None,
+    purpose: Optional[str] = None,
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db),
+):
+    """Return recent consent checks for the activity feed."""
+    query = db.query(AuditLog)
+    if lead_id:
+        query = query.filter(AuditLog.lead_id == lead_id)
+    if purpose:
+        query = query.filter(AuditLog.purpose_required == purpose.strip().lower())
+    return query.order_by(AuditLog.timestamp.desc()).limit(limit).all()
 
 
 # ---------------------------------------------------------------------------
