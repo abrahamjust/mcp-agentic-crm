@@ -23,11 +23,14 @@ Real time
 Not in this module: check_consent and the audit log (Role 5).
 """
 import os
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -67,6 +70,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
+app.mount(
+    "/assets",
+    StaticFiles(directory=FRONTEND_DIR / "assets"),
+    name="frontend-assets",
+)
+
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -98,6 +108,36 @@ def _lead_json(lead: Lead) -> dict:
 
 def _interaction_json(item: Interaction) -> dict:
     return InteractionOut.model_validate(item).model_dump(mode="json")
+
+
+# ---------------------------------------------------------------------------
+# Frontend pages
+# ---------------------------------------------------------------------------
+
+
+@app.get("/", include_in_schema=False)
+def dashboard_page():
+    return FileResponse(FRONTEND_DIR / "index.html")
+
+
+@app.get("/pipeline", include_in_schema=False)
+def pipeline_page():
+    return FileResponse(FRONTEND_DIR / "pipeline.html")
+
+
+@app.get("/approvals", include_in_schema=False)
+def approvals_page():
+    return FileResponse(FRONTEND_DIR / "approvals.html")
+
+
+@app.get("/activity", include_in_schema=False)
+def activity_page():
+    return FileResponse(FRONTEND_DIR / "activity.html")
+
+
+@app.get("/leads/new", include_in_schema=False)
+def lead_form_page():
+    return FileResponse(FRONTEND_DIR / "new-lead.html")
 
 
 # ---------------------------------------------------------------------------

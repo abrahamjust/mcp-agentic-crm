@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#171719">
+    <title>Approvals · CRM</title>
+    <link rel="stylesheet" href="/assets/app.css?v=6">
+    <script src="/assets/dashboard.js?v=8" defer></script>
+  </head>
+  <body data-page="approvals">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="CRM dashboard"><span class="brand-mark">C</span><span>CRM<span class="brand-sub">WORKSPACE</span></span></a>
+        <div class="nav-label">WORKSPACE</div>
+        <nav class="side-nav" aria-label="Main navigation">
+          <a class="nav-link" href="/"><span class="nav-icon">▦</span>Overview</a>
+          <a class="nav-link" href="/pipeline"><span class="nav-icon">◫</span>Lead pipeline</a>
+          <a class="nav-link active" href="/approvals" aria-current="page"><span class="nav-icon">✳</span>Approvals <span id="approval-nav-count" class="nav-count">0</span></a>
+          <a class="nav-link" href="/activity"><span class="nav-icon">◷</span>Activity</a>
+        </nav>
+        <div class="sidebar-bottom"><a class="nav-link new-lead-link" href="/leads/new"><span class="nav-icon">＋</span>Add a lead</a></div>
+      </aside>
+      <main class="main-content">
+        <header class="topbar"><div class="breadcrumb"><a href="/">Workspace</a><span class="crumb-separator">/</span><strong>Approvals</strong></div><div class="topbar-actions"><div class="connection-pill"><span id="connection-dot" class="status-dot"></span><span id="connection-label">Connecting</span></div><div class="admin-chip"><span class="admin-avatar">A</span><span>ADMIN</span></div></div></header>
+        <div class="page-wrap">
+          <section class="page-heading"><div><p class="eyebrow">HUMAN IN THE LOOP</p><h1>Follow-up <span class="heading-accent">approvals</span></h1><p class="page-description">Review Agent B’s consent-checked email drafts before taking action.</p></div></section>
+          <div id="toast" class="toast" role="status" hidden></div>
+          <div id="page-error" class="page-error" role="alert" hidden><div><strong>Couldn’t load the CRM data.</strong><span id="error-message"></span></div><button id="retry-button" class="button button-small button-outline" type="button">Try again</button></div>
+          <div class="approval-summary"><div><span class="eyebrow">WAITING FOR YOUR REVIEW</span><strong><span id="metric-pending">—</span> drafts</strong></div><span class="approval-summary-note">Only Hot leads with marketing consent are eligible for follow-up drafts.</span></div>
+          <section class="panel approvals-panel"><div class="panel-heading"><div><p class="eyebrow">PENDING QUEUE</p><h2>Review email drafts</h2></div><span id="approval-count" class="count-badge">0 pending</span></div><p class="panel-description">“Open email &amp; approve” opens a prefilled compose window in your default email app and records approval. Review the message and send it there; the CRM never sends it automatically.</p><div id="approval-list" class="approval-list"></div></section>
+          <footer class="page-footer"><span>CRM WORKSPACE</span><span>Drafts require marketing consent · sending remains manual</span></footer>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

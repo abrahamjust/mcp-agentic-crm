@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#171719">
+    <title>Add a lead · CRM</title>
+    <link rel="stylesheet" href="/assets/app.css?v=6">
+    <script src="/assets/new-lead.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="CRM dashboard">
+          <span class="brand-mark">C</span>
+          <span>CRM<span class="brand-sub">WORKSPACE</span></span>
+        </a>
+        <div class="nav-label">WORKSPACE</div>
+        <nav class="side-nav" aria-label="Main navigation">
+          <a class="nav-link" href="/"><span class="nav-icon">▦</span>Overview</a>
+          <a class="nav-link" href="/pipeline"><span class="nav-icon">◫</span>Lead pipeline</a>
+          <a class="nav-link" href="/approvals"><span class="nav-icon">✳</span>Approvals</a>
+          <a class="nav-link" href="/activity"><span class="nav-icon">◷</span>Activity</a>
+        </nav>
+        <div class="sidebar-bottom"><a class="nav-link new-lead-link active" href="/leads/new" aria-current="page"><span class="nav-icon">＋</span>Add a lead</a></div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb"><a href="/">Workspace</a><span class="crumb-separator">/</span><strong>New lead</strong></div>
+          <div class="topbar-actions">
+            <div class="admin-chip"><span class="admin-avatar">A</span><span>ADMIN</span></div>
+          </div>
+        </header>
+
+        <div class="page-wrap form-page-wrap">
+          <section class="page-heading form-page-heading">
+            <div>
+              <p class="eyebrow">LEAD INTAKE</p>
+              <h1>Add a <span class="heading-accent">lead</span></h1>
+              <p class="page-description">Save a lead to the CRM and let the pipeline take it from there.</p>
+            </div>
+            <a class="button button-outline" href="/">← Back to dashboard</a>
+          </section>
+
+          <div class="form-layout">
+            <form id="lead-form" class="lead-form" novalidate>
+              <div id="form-error" class="form-message form-message-error" role="alert" hidden></div>
+              <section class="form-section">
+                <div class="form-section-heading"><span class="section-number">01</span><div><h2>Contact details</h2><p>Tell us who this lead is.</p></div></div>
+                <div class="form-grid">
+                  <label class="field"><span>Full name <b>*</b></span><input name="name" autocomplete="name" required maxlength="200" placeholder="Full name"></label>
+                  <label class="field"><span>Email address <b>*</b></span><input name="email" type="email" autocomplete="email" required maxlength="320" placeholder="name@company.com"></label>
+                  <label class="field"><span>Company</span><input name="company" autocomplete="organization" maxlength="200" placeholder="Company name"></label>
+                  <label class="field"><span>Phone</span><input name="phone" type="tel" autocomplete="tel" maxlength="40" placeholder="+1 555 000 0000"></label>
+                  <label class="field"><span>Job title</span><input name="job_title" autocomplete="organization-title" maxlength="200" placeholder="e.g. Product Manager"></label>
+                  <label class="field"><span>Company size</span><select name="company_size">
+                    <option value="">Choose a range</option><option>1-10</option><option>11-50</option><option>51-200</option><option>201-1000</option><option>1000+</option>
+                  </select></label>
+                  <label class="field"><span>Product interest</span><input name="product_interest" maxlength="200" placeholder="What are they interested in?"></label>
+                  <label class="field"><span>Lead source</span><select name="source">
+                    <option value="">Unknown</option><option>Website</option><option>Referral</option><option>Social</option><option>Cold Outreach</option><option>Event</option>
+                  </select></label>
+                </div>
+              </section>
+
+              <section class="form-section">
+                <div class="form-section-heading"><span class="section-number">02</span><div><h2>Scoring signals</h2><p>Optional context for Agent A. Leave blank if you don’t have it.</p></div></div>
+                <div class="form-grid">
+                  <label class="field"><span>Occupation</span><select name="occupation">
+                    <option value="">Not provided</option><option>Working Professional</option><option>Business Owner</option><option>Student</option><option>Unemployed</option><option>Homemaker</option><option>Other</option>
+                  </select></label>
+                  <label class="field"><span>Total website visits</span><input name="total_visits" type="number" min="0" step="1" inputmode="numeric" placeholder="Optional"></label>
+                  <label class="field"><span>Time on website (seconds)</span><input name="time_on_website_sec" type="number" min="0" step="1" inputmode="numeric" placeholder="Optional"></label>
+                  <label class="field"><span>Pages per visit</span><input name="pages_per_visit" type="number" min="0" step="any" inputmode="decimal" placeholder="Optional"></label>
+                </div>
+              </section>
+
+              <section class="form-section">
+                <div class="form-section-heading"><span class="section-number">03</span><div><h2>Notes &amp; consent</h2><p>Consent is optional and is never assumed.</p></div></div>
+                <label class="field"><span>Notes</span><textarea name="notes" rows="4" maxlength="5000" placeholder="Add useful context for your team…"></textarea></label>
+                <label class="consent-option">
+                  <input name="marketing_consent" type="checkbox">
+                  <span><strong>Marketing follow-up consent</strong><small>Check only if this person has agreed to receive marketing emails. Agent B will not draft a follow-up without this consent.</small></span>
+                </label>
+              </section>
+
+              <div class="form-actions">
+                <a class="button button-text" href="/">Cancel</a>
+                <button id="submit-button" class="button button-primary" type="submit"><span>Save lead to pipeline</span><span aria-hidden="true">→</span></button>
+              </div>
+            </form>
+
+            <aside class="form-aside">
+              <div class="aside-card aside-card-yellow">
+                <span class="aside-icon">↗</span>
+                <p class="eyebrow">WHAT HAPPENS NEXT</p>
+                <h2>One record.<br>Clear next steps.</h2>
+                <ol class="next-steps">
+                  <li><span>1</span><div><strong>Saved to CRM</strong><small>Your lead is standardized and starts in New / Unscored.</small></div></li>
+                  <li><span>2</span><div><strong>Scored by Agent A</strong><small>The scoring worker evaluates available lead details.</small></div></li>
+                  <li><span>3</span><div><strong>Consent checked by Agent B</strong><small>Only Hot leads with marketing consent can get a draft.</small></div></li>
+                  <li><span>4</span><div><strong>Reviewed by an admin</strong><small>A draft waits for approval. Approval does not send it.</small></div></li>
+                </ol>
+              </div>
+              <div class="aside-footnote"><span class="footnote-mark">i</span><span>Agent A and Agent B are separate workers. Start them from their documented commands to process new leads.</span></div>
+            </aside>
+          </div>
+          <footer class="page-footer"><span>CRM WORKSPACE</span><span>Required fields are marked with *</span></footer>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

@@ -62,6 +62,7 @@ class ScoringAgent:
         self.batch_size = batch_size
         self.max_attempts = max_attempts
         self.metrics_path = metrics_path
+        self._started_at: datetime | None = None
         # lead_id -> failed attempts; a lead that keeps failing is set aside so
         # it cannot block newer leads (it is retried after a restart)
         self._failures: Counter = Counter()
@@ -79,6 +80,13 @@ class ScoringAgent:
         given_up = self.given_up
         leads = await self.crm.get_unscored_leads(self.batch_size + len(given_up))
         leads = [lead for lead in leads if lead["id"] not in given_up][: self.batch_size]
+        if self._started_at is not None:
+            leads = [
+                lead
+                for lead in leads
+                if (created_at := _parse_time(lead.get("created_at"))) is not None
+                and created_at > self._started_at
+            ]
         stats.fetched = len(leads)
         if not leads:
             return stats
@@ -167,9 +175,11 @@ class ScoringAgent:
         """Poll until `stop` is set. Backs off exponentially while the CRM is
         unreachable and never dies on a single bad cycle."""
         stop = stop or asyncio.Event()
+        self._started_at = datetime.now(timezone.utc)
         backoff = poll_interval
         log.info("Agent A running: model %s, polling every %.1fs via %s",
                  self.scorer.version, poll_interval, self.crm.name)
+        log.info("Existing leads will be left untouched; scoring leads created after startup")
         while not stop.is_set():
             delay = poll_interval
             try:

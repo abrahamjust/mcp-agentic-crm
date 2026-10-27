@@ -18,6 +18,14 @@ uvicorn app.main:app --reload --port 8000
   a different file.
 - Run **one** server process (no `--workers N`): WebSocket broadcast is
   in-process, so extra workers would not see each other's connections.
+- The dashboard is served at http://127.0.0.1:8000. Its pages are
+  `/` (overview), `/pipeline`, `/approvals`, `/activity`, and `/leads/new`
+  (lead form). No separate frontend server is required.
+- To process leads end to end, also start Agent A and Agent B using the
+  commands in [Agent A's guide](../agent_a/README.md) and
+  [Agent B's guide](../agent_b/README.md). A lead remains Unscored until
+  Agent A runs; follow-up drafts require a Hot score, marketing consent,
+  and Agent B. Approving a draft records approval but does not send email.
 
 ## Test
 
@@ -103,8 +111,12 @@ lead (or interaction) in the same JSON format the REST API returns
   consent and writes an audit record. `GET /audit-log` returns those records.
   `GET /leads/stale` flags leads inactive beyond `CONSENT_RETENTION_DAYS`
   (90 by default), or an optional `days` query threshold. No lead is deleted.
-- **Role 6 (Frontend):** CORS is open for local development. Load the board
-  with `GET /leads`, then keep it live from the WebSocket events above.
+- **Role 6 (Frontend):** the FastAPI app serves the dashboard and lead form.
+  The overview shows CRM-backed KPIs and charts; pipeline, approval queue,
+  and activity each have a separate page. Pages load `GET /leads`,
+  interactions and consent audit events, then refresh on the WebSocket
+  events above. The separate `/leads/new` form submits standardized lead
+  input to `POST /leads`.
 
 ## Layout
 
@@ -118,6 +130,7 @@ backend/
     consent.py      purpose-specific consent decision logic (Role 5)
     events.py       WebSocket broadcast
     database.py     SQLite engine / session
+  ../frontend/      dashboard, lead form and static assets served by FastAPI
   tests/            standardization, REST, WebSocket, DB upgrade
   requirements.txt
 ```

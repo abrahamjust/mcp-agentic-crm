@@ -18,6 +18,49 @@ def test_health(client):
     assert client.get("/health").json() == {"status": "ok"}
 
 
+def test_frontend_pages_and_assets_are_served(client):
+    pages = {
+        "/": "Overview",
+        "/pipeline": "pipeline",
+        "/approvals": "Approvals",
+        "/activity": "Activity",
+        "/leads/new": "Add a lead",
+    }
+    stylesheet = client.get("/assets/app.css")
+    approvals = client.get("/approvals")
+    dashboard_script = client.get("/assets/dashboard.js?v=8")
+
+    for path, title in pages.items():
+        response = client.get(path)
+        assert response.status_code == 200
+        assert title in response.text
+    overview = client.get("/").text
+    assert 'id="metric-win-rate"' in overview
+    assert 'id="metric-close-rate"' in overview
+    assert 'id="hot-trend-chart"' in overview
+    assert 'id="conversion-chart"' in overview
+    assert 'id="stage-chart"' in overview
+    assert 'id="score-chart"' in overview
+    assert 'id="source-chart"' in overview
+    assert 'id="consent-chart"' in overview
+    assert 'id="pipeline-board"' not in overview
+    assert "How a lead moves" not in overview
+    pipeline = client.get("/pipeline").text
+    assert 'id="pipeline-board"' in pipeline
+    assert 'id="lead-search"' in pipeline
+    assert stylesheet.status_code == 200
+    assert "stats-grid" in stylesheet.text
+    assert approvals.status_code == 200
+    assert "Open email &amp; approve" in approvals.text or "Open email &amp; approve" in dashboard_script.text
+    assert "mailto:" in dashboard_script.text
+    assert "default email app" in approvals.text
+    assert "lead-detail-preview" in dashboard_script.text
+    assert "leadHoverTarget" in dashboard_script.text
+    assert "lead.notes" in dashboard_script.text
+    assert "lead.product_interest" in dashboard_script.text
+    assert "lead-search" in dashboard_script.text
+
+
 def test_create_lead_standardizes_and_returns_lead(client):
     body = make_lead(
         client,

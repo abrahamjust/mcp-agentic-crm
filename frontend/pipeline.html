@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#171719">
+    <title>Lead pipeline · CRM</title>
+    <link rel="stylesheet" href="/assets/app.css?v=6">
+    <script src="/assets/dashboard.js?v=8" defer></script>
+  </head>
+  <body data-page="pipeline">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="CRM dashboard"><span class="brand-mark">C</span><span>CRM<span class="brand-sub">WORKSPACE</span></span></a>
+        <div class="nav-label">WORKSPACE</div>
+        <nav class="side-nav" aria-label="Main navigation">
+          <a class="nav-link" href="/"><span class="nav-icon">▦</span>Overview</a>
+          <a class="nav-link active" href="/pipeline" aria-current="page"><span class="nav-icon">◫</span>Lead pipeline</a>
+          <a class="nav-link" href="/approvals"><span class="nav-icon">✳</span>Approvals <span id="approval-nav-count" class="nav-count">0</span></a>
+          <a class="nav-link" href="/activity"><span class="nav-icon">◷</span>Activity</a>
+        </nav>
+        <div class="sidebar-bottom"><a class="nav-link new-lead-link" href="/leads/new"><span class="nav-icon">＋</span>Add a lead</a></div>
+      </aside>
+      <main class="main-content">
+        <header class="topbar"><div class="breadcrumb"><a href="/">Workspace</a><span class="crumb-separator">/</span><strong>Lead pipeline</strong></div><div class="topbar-actions"><div class="connection-pill"><span id="connection-dot" class="status-dot"></span><span id="connection-label">Connecting</span></div><div class="admin-chip"><span class="admin-avatar">A</span><span>ADMIN</span></div></div></header>
+        <div class="page-wrap">
+          <section class="page-heading"><div><p class="eyebrow">LIVE CRM RECORDS</p><h1>Lead <span class="heading-accent">pipeline</span></h1><p class="page-description">Track every lead across its current sales stage.</p></div><a class="button button-primary" href="/leads/new"><span>＋</span> Add a lead</a></section>
+          <div id="toast" class="toast" role="status" hidden></div>
+          <div id="page-error" class="page-error" role="alert" hidden><div><strong>Couldn’t load the CRM data.</strong><span id="error-message"></span></div><button id="retry-button" class="button button-small button-outline" type="button">Try again</button></div>
+          <section class="stats-grid compact-stats" aria-label="Pipeline metrics">
+            <article class="stat-card stat-card-yellow"><div class="stat-top"><span class="stat-label">TOTAL LEADS</span><span class="stat-icon">↗</span></div><strong id="metric-total" class="stat-value">—</strong><span class="stat-foot">in all stages</span></article>
+            <article class="stat-card stat-card-lime"><div class="stat-top"><span class="stat-label">HOT</span><span class="stat-icon">✳</span></div><strong id="metric-hot" class="stat-value">—</strong><span class="stat-foot">high-priority leads</span></article>
+            <article class="stat-card stat-card-pink"><div class="stat-top"><span class="stat-label">UNSCORED</span><span class="stat-icon">◷</span></div><strong id="metric-unscored" class="stat-value">—</strong><span class="stat-foot">waiting on Agent A</span></article>
+            <article class="stat-card stat-card-blue"><div class="stat-top"><span class="stat-label">SCORED</span><span class="stat-icon">◉</span></div><strong id="metric-scored" class="stat-value">—</strong><span class="stat-foot">processed leads</span></article>
+          </section>
+          <div id="scoring-notice" class="scoring-notice" hidden><span class="callout-icon">!</span><p><strong>Why are these leads unscored?</strong> New form submissions are saved as Unscored. Agent A is a separate worker; it must be started to score leads and update this board.</p></div>
+          <section class="section-block">
+            <div class="section-heading"><div><p class="eyebrow">SALES BOARD</p><h2>Pipeline stages</h2></div><div class="board-tools"><label class="search-box"><span aria-hidden="true">⌕</span><input id="lead-search" type="search" placeholder="Search by name…" aria-label="Search leads by name"></label><label class="select-filter"><span class="sr-only">Filter by score</span><select id="bucket-filter"><option value="">All scores</option><option>Hot</option><option>Warm</option><option>Cold</option><option>Unscored</option></select></label></div></div>
+            <div id="pipeline-board" class="pipeline-board" aria-live="polite"></div>
+          </section>
+          <footer class="page-footer"><span>CRM WORKSPACE</span><span>Stage changes are saved to the CRM immediately</span></footer>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

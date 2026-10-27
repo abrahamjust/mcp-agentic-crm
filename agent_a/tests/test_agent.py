@@ -189,3 +189,26 @@ async def test_wakeup_event_triggers_an_immediate_cycle(rest_client, backend_htt
     stop.set()
     await asyncio.wait_for(task, timeout=5)
     assert (await backend_http.get(f"/leads/{lead['id']}")).json()["bucket"] == "Hot"
+
+
+async def test_continuous_agent_leaves_preexisting_unscored_leads_untouched(
+    rest_client, backend_http, scorer
+):
+    existing = await create_lead(backend_http)
+    stop, wakeup = asyncio.Event(), asyncio.Event()
+    agent = ScoringAgent(rest_client, scorer)
+    task = asyncio.create_task(agent.run(poll_interval=60, stop=stop, wakeup=wakeup))
+    await asyncio.sleep(0.2)
+
+    new_lead = await create_lead(backend_http, **FULL_FORM)
+    wakeup.set()
+    for _ in range(100):
+        stored = (await backend_http.get(f"/leads/{new_lead['id']}")).json()
+        if stored["bucket"] != "Unscored":
+            break
+        await asyncio.sleep(0.05)
+
+    stop.set()
+    await asyncio.wait_for(task, timeout=5)
+    assert (await backend_http.get(f"/leads/{existing['id']}")).json()["bucket"] == "Unscored"
+    assert stored["bucket"] == "Hot"

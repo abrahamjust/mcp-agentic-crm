@@ -70,6 +70,11 @@ is needed to run the agent.
 | `--metrics-file` | `AGENT_A_METRICS_FILE` | off; JSON lines with creation→score latency per lead |
 | `--model-dir` | `AGENT_A_MODEL_DIR` | `models/<LATEST>` |
 
+The continuous `run` worker leaves leads that were already in the CRM when it
+started untouched. It scores newly submitted leads; start it before submitting
+the leads you want scored. The explicit `run --once` command still scores the
+current unscored queue.
+
 ## Integration contracts
 
 ### Inputs (Role 2 backend, Role 6 form)
