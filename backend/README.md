@@ -38,6 +38,9 @@ Tests use a throwaway database and never touch `crm.db`.
 | PATCH | `/leads/{id}/score` | Agent A | Write `{score, bucket, top_factors, model_version}` (`update_lead_score`) |
 | PATCH | `/leads/{id}/stage` | Agent B | Write `{pipeline_stage}` (`update_deal_stage`) |
 | PATCH | `/leads/{id}/consent` | Frontend / Consent layer | Change consent for the listed purposes only: `{"consent": {"marketing": false}}` |
+| POST | `/consent/check` | Agent B / Consent layer | Return an allow/block decision for a lead and purpose, and write its audit entry |
+| GET | `/audit-log` | Frontend / Role 6 | List consent-check audit entries; filter by `lead_id` or `purpose` |
+| GET | `/leads/stale` | Consent layer | Flag leads inactive beyond the configured retention period; does not delete |
 | POST | `/leads/{id}/interactions` | Agent B | Log an action, including blocked ones (`log_interaction`) |
 | GET | `/leads/{id}/interactions` | Everyone | Actions on one lead |
 | GET | `/interactions` | Frontend | Recent actions; `status=pending_approval` is the approval queue; also `action_type`, `limit` |
@@ -96,9 +99,10 @@ lead (or interaction) in the same JSON format the REST API returns
   returns the Hot leads nothing has been logged for yet. Log blocked attempts
   too (`action_type="no_action_consent_blocked"`, `status="blocked"`) so a
   blocked lead is not picked up again.
-- **Role 5 (Consent):** `check_consent` and the audit log are **not** in this
-  module. Read a lead's consent from `GET /leads/{id}`; add your own tables in
-  `app/models.py` and your routes in `app/main.py` (or a new router file).
+- **Role 5 (Consent):** `POST /consent/check` evaluates purpose-specific
+  consent and writes an audit record. `GET /audit-log` returns those records.
+  `GET /leads/stale` flags leads inactive beyond `CONSENT_RETENTION_DAYS`
+  (90 by default), or an optional `days` query threshold. No lead is deleted.
 - **Role 6 (Frontend):** CORS is open for local development. Load the board
   with `GET /leads`, then keep it live from the WebSocket events above.
 
@@ -111,6 +115,7 @@ backend/
     models.py       Lead, Interaction tables
     schemas.py      request/response shapes
     standardize.py  input cleaning (email, phone, size, seniority, source, consent)
+    consent.py      purpose-specific consent decision logic (Role 5)
     events.py       WebSocket broadcast
     database.py     SQLite engine / session
   tests/            standardization, REST, WebSocket, DB upgrade

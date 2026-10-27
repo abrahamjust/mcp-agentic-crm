@@ -212,6 +212,86 @@ def test_update_consent_unknown_lead_404(client):
 
 
 # ---------------------------------------------------------------------------
+# consent checks and compliance audit log
+# ---------------------------------------------------------------------------
+
+
+def test_consent_check_allows_granted_purpose_and_audits_it(client):
+    lead = make_lead(client, consent={"marketing": True})
+
+    response = client.post(
+        "/consent/check",
+        json={
+            "lead_id": lead["id"],
+            "purpose": "marketing",
+            "actor": "agent_b",
+            "action_attempted": "drafted_followup_email",
+        },
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["allowed"] is True
+    assert result["result"] == "allowed"
+    assert result["consent_on_file"] is True
+    assert "granted" in result["reason"]
+
+    logs = client.get("/audit-log", params={"lead_id": lead["id"]}).json()
+    assert len(logs) == 1
+    assert logs[0]["purpose_required"] == "marketing"
+    assert logs[0]["consent_on_file"] is True
+    assert logs[0]["result"] == "allowed"
+    assert logs[0]["action_attempted"] == "drafted_followup_email"
+
+
+def test_consent_check_blocks_denied_purpose_and_audits_it(client):
+    lead = make_lead(client, consent={"marketing": False})
+
+    response = client.post(
+        "/consent/check",
+        json={"lead_id": lead["id"], "purpose": "marketing"},
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["allowed"] is False
+    assert result["result"] == "blocked"
+    assert result["consent_on_file"] is True
+    assert "denied" in result["reason"]
+
+    logs = client.get("/audit-log", params={"purpose": "MARKETING"}).json()
+    assert len(logs) == 1
+    assert logs[0]["lead_id"] == lead["id"]
+    assert logs[0]["result"] == "blocked"
+
+
+def test_stale_leads_are_flagged_without_deletion(client):
+    lead = make_lead(client)
+    from app.database import SessionLocal
+    from app.models import Lead
+    from datetime import datetime, timedelta, timezone
+
+    db = SessionLocal()
+    stored = db.get(Lead, lead["id"])
+    stored.last_activity_at = datetime.now(timezone.utc) - timedelta(days=31)
+    db.commit()
+    db.close()
+
+    response = client.get("/leads/stale", params={"days": 30})
+    assert response.status_code == 200
+    stale = response.json()
+    assert stale == [
+        {
+            "lead_id": lead["id"],
+            "last_activity_at": stale[0]["last_activity_at"],
+            "stale": True,
+            "retention_days": 30,
+        }
+    ]
+    assert client.get(f"/leads/{lead['id']}").status_code == 200
+
+
+# ---------------------------------------------------------------------------
 # interactions (log_interaction)
 # ---------------------------------------------------------------------------
 
