@@ -14,7 +14,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, Float, DateTime, JSON, Enum, Text, ForeignKey
+from sqlalchemy import Column, String, Float, Integer, DateTime, JSON, Enum, Text, ForeignKey
 from sqlalchemy.orm import validates
 from sqlalchemy.types import TypeDecorator
 
@@ -74,6 +74,28 @@ class LeadSource(str, enum.Enum):
     UNKNOWN = "Unknown"
 
 
+class LeadOrigin(str, enum.Enum):
+    """How the lead entered the CRM (Agent A model input)."""
+
+    LANDING_PAGE = "Landing Page Submission"
+    API = "API"
+    LEAD_ADD_FORM = "Lead Add Form"
+    LEAD_IMPORT = "Lead Import"
+    UNKNOWN = "Unknown"
+
+
+class Occupation(str, enum.Enum):
+    """The lead's current occupation (Agent A model input)."""
+
+    WORKING_PROFESSIONAL = "Working Professional"
+    BUSINESS_OWNER = "Business Owner"
+    STUDENT = "Student"
+    UNEMPLOYED = "Unemployed"
+    HOMEMAKER = "Homemaker"
+    OTHER = "Other"
+    UNKNOWN = "Unknown"
+
+
 class Bucket(str, enum.Enum):
     HOT = "Hot"
     WARM = "Warm"
@@ -105,6 +127,14 @@ class Lead(Base):
     source = Column(Enum(LeadSource), default=LeadSource.UNKNOWN, nullable=False)
     product_interest = Column(String, nullable=True)
     notes = Column(Text, nullable=True)
+
+    # --- scoring inputs for Agent A (all optional; the model handles blanks) ---
+    lead_origin = Column(Enum(LeadOrigin), default=LeadOrigin.UNKNOWN, nullable=False)
+    occupation = Column(Enum(Occupation), default=Occupation.UNKNOWN, nullable=False)
+    # web-analytics engagement, normally filled by site tracking
+    total_visits = Column(Integer, nullable=True)
+    time_on_website_sec = Column(Integer, nullable=True)
+    pages_per_visit = Column(Float, nullable=True)
 
     # list of {purpose, granted, timestamp}: one record per purpose
     consent = Column(JSON, default=list, nullable=False)

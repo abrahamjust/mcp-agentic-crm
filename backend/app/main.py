@@ -30,7 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.database import Base, engine, get_db
+from app.database import Base, add_missing_columns, engine, get_db
 from app.events import manager
 from app.models import Bucket, Interaction, Lead, PipelineStage
 from app.schemas import (
@@ -47,6 +47,7 @@ from app.schemas import (
 from app.standardize import normalize_consent, standardize_lead_input
 
 Base.metadata.create_all(bind=engine)
+add_missing_columns()  # upgrade a crm.db created before newer columns existed
 
 app = FastAPI(title="Agentic CRM: Core Backend (Role 2)")
 

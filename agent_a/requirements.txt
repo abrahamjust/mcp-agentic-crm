@@ -1,0 +1,19 @@
+# Agent A (Role 3). Pinned: the model artifact is a pickle and must be
+# loaded with the same scikit-learn / numpy versions it was trained with.
+scikit-learn==1.9.1
+numpy==2.5.4
+pandas==3.1.0
+xgboost==3.4.1
+shap==0.54.1
+joblib==1.6.0
+mcp==2.3.0
+httpx==0.28.1
+websockets
+pydantic==2.14.1
+fastapi
+uvicorn[standard]
+matplotlib==3.11.2
+kaggle==2.2.5
+pytest
+# training and the integration tests import the backend's normalizers / app
+-r ../backend/requirements.txt

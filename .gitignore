@@ -9,6 +9,9 @@ venv/
 *.db
 .env
 
+# Agent A: raw Kaggle data is not redistributed; download it instead
+agent_a/data/raw/
+
 # Frontend (when Role 6 adds it)
 node_modules/
 dist/

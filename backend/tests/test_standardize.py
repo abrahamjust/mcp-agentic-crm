@@ -1,14 +1,18 @@
 """Unit tests for the standardization layer."""
 import pytest
 
-from app.models import CompanySize, Seniority, LeadSource
+from app.models import CompanySize, LeadOrigin, LeadSource, Occupation, Seniority
 from app.standardize import (
     clean_optional_text,
     normalize_company_size,
     normalize_consent,
+    normalize_count,
     normalize_email,
+    normalize_lead_origin,
     normalize_name,
+    normalize_occupation,
     normalize_phone,
+    normalize_rate,
     normalize_source,
     standardize_lead_input,
     title_to_seniority,
@@ -81,6 +85,41 @@ def test_normalize_source_variants():
     assert normalize_source("carrier pigeon") == LeadSource.UNKNOWN
 
 
+def test_normalize_source_web_analytics_channels():
+    assert normalize_source("Google") == LeadSource.WEBSITE
+    assert normalize_source("Olark Chat") == LeadSource.WEBSITE
+    assert normalize_source("Referral Sites") == LeadSource.WEBSITE
+    assert normalize_source("Reference") == LeadSource.REFERRAL
+    assert normalize_source("youtubechannel") == LeadSource.SOCIAL
+
+
+def test_normalize_lead_origin():
+    assert normalize_lead_origin("Landing Page Submission") == LeadOrigin.LANDING_PAGE
+    assert normalize_lead_origin(" landing page ") == LeadOrigin.LANDING_PAGE
+    assert normalize_lead_origin("Quick Add Form") == LeadOrigin.LEAD_ADD_FORM
+    assert normalize_lead_origin("API") == LeadOrigin.API
+    assert normalize_lead_origin(None) == LeadOrigin.UNKNOWN
+    assert normalize_lead_origin("fax") == LeadOrigin.UNKNOWN
+
+
+def test_normalize_occupation():
+    assert normalize_occupation("working professional") == Occupation.WORKING_PROFESSIONAL
+    assert normalize_occupation("Businessman") == Occupation.BUSINESS_OWNER
+    assert normalize_occupation("Housewife") == Occupation.HOMEMAKER
+    assert normalize_occupation("") == Occupation.UNKNOWN
+    assert normalize_occupation("astronaut") == Occupation.UNKNOWN
+
+
+def test_normalize_engagement_numbers():
+    assert normalize_count(3.0) == 3
+    assert normalize_count(2.6) == 3
+    assert normalize_count(None) is None
+    assert normalize_count(float("nan")) is None
+    assert normalize_count(-1) is None
+    assert normalize_rate(2.333) == 2.33
+    assert normalize_rate(float("nan")) is None
+
+
 def test_normalize_consent_structure():
     result = normalize_consent({"marketing": True, "analytics": False})
     purposes = {r["purpose"]: r["granted"] for r in result}
@@ -130,6 +169,10 @@ def test_standardize_lead_input_end_to_end():
     assert clean["notes"] is None
     assert clean["consent"][0]["purpose"] == "marketing"
     assert clean["consent"][0]["granted"] is True
+    # scoring inputs absent -> Unknown / None, never an error
+    assert clean["lead_origin"] == LeadOrigin.UNKNOWN
+    assert clean["occupation"] == Occupation.UNKNOWN
+    assert clean["total_visits"] is None
 
 
 @pytest.mark.parametrize("bad_email", ["", "   ", "notanemail", "a@b", "a b@c.com"])
