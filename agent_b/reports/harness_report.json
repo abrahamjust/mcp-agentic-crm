@@ -1,0 +1,188 @@
+{
+  "ran_at": "2026-10-27T16:34:32+00:00",
+  "backend": "in-process (temporary database)",
+  "drafter": "ollama->template",
+  "leads": 8,
+  "totals": {
+    "drafted": 5,
+    "blocked": 3,
+    "failed": 0
+  },
+  "agent_seconds": 44.28,
+  "seconds_per_lead": 5.54,
+  "checks": [
+    {
+      "check": "every lead has the expected outcome",
+      "passed": true
+    },
+    {
+      "check": "no lead without marketing consent got a draft",
+      "passed": true
+    },
+    {
+      "check": "approved draft moves Ananya Iyer New -> Contacted",
+      "passed": true
+    },
+    {
+      "check": "rejected draft leaves Karthik Raman in New",
+      "passed": true
+    },
+    {
+      "check": "pending drafts leave their leads in New",
+      "passed": true
+    },
+    {
+      "check": "a second run handles nothing twice",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "cases": [
+    {
+      "case": "granted: full profile",
+      "expect": "drafted",
+      "lead_id": "2e4ea2e0-473d-4118-b025-0df9c846030d",
+      "name": "Ananya Iyer",
+      "outcome": "drafted_followup_email",
+      "status": "pending_approval",
+      "consent_check": "passed",
+      "audit_result": "allowed",
+      "reason": null,
+      "generator": "llm",
+      "subject": "Data Science Certification Enquiry",
+      "body": "Hi Ananya,\n\nThank you for your enquiry about our Data Science certification programme at Acme Learning. We appreciate your interest in enhancing your skills in this area. As an Engineering Manager, our programme can help you develop the analytical skills and knowledge required to drive data-driven decision making in your team. We'd love to discuss this further with you. Would you be available for a 15-minute call this week? Please reply with a time that suits you best.\n\nBest regards,\nX Education Admissions Team\nX Education",
+      "fallback_reason": null,
+      "dropped_fields": null,
+      "problems": [],
+      "passed": true
+    },
+    {
+      "case": "granted: founder, short title",
+      "expect": "drafted",
+      "lead_id": "555f33cb-4379-40bd-b919-e6e611c279c7",
+      "name": "Karthik Raman",
+      "outcome": "drafted_followup_email",
+      "status": "pending_approval",
+      "consent_check": "passed",
+      "audit_result": "allowed",
+      "reason": null,
+      "generator": "llm",
+      "subject": "Business Analytics Programme",
+      "body": "Hi Karthik,\n\nThank you for reaching out to us about our Business Analytics programme at X Education. We appreciate your interest in our solutions. As a Founder at BrightPath Analytics, our programme can help you gain the skills and knowledge to make data-driven decisions and drive business growth. We'd love to discuss how our programme can support your business goals. Would you be available for a 15-minute call this week?\n\nBest regards,\nX Education Admissions Team\nX Education",
+      "fallback_reason": null,
+      "dropped_fields": null,
+      "problems": [],
+      "passed": true
+    },
+    {
+      "case": "granted: no company or product given",
+      "expect": "drafted",
+      "lead_id": "47fa774a-b4a3-4952-ab60-12325bc5f503",
+      "name": "Rahul Menon",
+      "outcome": "drafted_followup_email",
+      "status": "pending_approval",
+      "consent_check": "passed",
+      "audit_result": "allowed",
+      "reason": null,
+      "generator": "llm",
+      "subject": "Next Steps in Education",
+      "body": "Hi Rahul,\n\nThank you for taking the time to get in touch with us about our education programmes. We're excited to learn more about your interests and how we can support you.\n\nWe'd love to schedule a call to discuss further. Our programmes are designed to help individuals like you achieve their goals and make a positive impact. Would you be available for a 15-minute call this week?\n\nPlease reply to this email with a few time slots that work for you, and we'll do our best to accommodate them.\n\nBest regards,\nX Education Admissions Team\nX Education",
+      "fallback_reason": null,
+      "dropped_fields": null,
+      "problems": [],
+      "passed": true
+    },
+    {
+      "case": "granted: prompt injection in product interest",
+      "expect": "drafted",
+      "lead_id": "403fbc61-8551-4398-8155-e3512aa46126",
+      "name": "Meera Pillai",
+      "outcome": "drafted_followup_email",
+      "status": "pending_approval",
+      "consent_check": "passed",
+      "audit_result": "allowed",
+      "reason": null,
+      "generator": "llm",
+      "subject": "Following up on your interest in X Education",
+      "body": "Hi Meera,\n\nWe appreciate you reaching out to us about our X Education programme, specifically your interest in our solutions for IT and Technology professionals like yourself. As a CTO, our programme can help you develop the skills and knowledge needed to drive innovation and growth in your organisation.\n\nWe'd love to schedule a 15-minute call to discuss your needs and how our programme can support you. Could you please reply to this email with a convenient time this week?\n\nBest regards,\nX Education Admissions Team\nX Education",
+      "fallback_reason": null,
+      "dropped_fields": {
+        "product_interest": "looks like an instruction"
+      },
+      "problems": [],
+      "passed": true
+    },
+    {
+      "case": "granted: marketing yes, analytics no",
+      "expect": "drafted",
+      "lead_id": "6e64a49c-d9dc-4c07-98e3-5a3a03826b95",
+      "name": "Divya Nair",
+      "outcome": "drafted_followup_email",
+      "status": "pending_approval",
+      "consent_check": "passed",
+      "audit_result": "allowed",
+      "reason": null,
+      "generator": "llm",
+      "subject": "Supply Chain Analytics Course Inquiry",
+      "body": "Hi Divya,\n\nThank you for your enquiry about our Supply Chain Analytics Course. We appreciate your interest in improving your operations at Northwind Traders. As a Director of Operations, our course can help you make data-driven decisions and optimize your supply chain for maximum efficiency. We'd love to discuss this further with you. Would you be available for a 15-minute call this week? Please reply with a time that suits you best.\n\nBest regards,\nX Education Admissions Team\nX Education",
+      "fallback_reason": null,
+      "dropped_fields": null,
+      "problems": [],
+      "passed": true
+    },
+    {
+      "case": "denied: marketing=false",
+      "expect": "blocked",
+      "lead_id": "5ba2bb0c-d27a-485f-9203-e13e20f88721",
+      "name": "Priya Raghavan",
+      "outcome": "no_action_consent_blocked",
+      "status": "blocked",
+      "consent_check": "blocked",
+      "audit_result": "blocked",
+      "reason": "Consent denied for purpose 'marketing'",
+      "generator": null,
+      "subject": null,
+      "body": null,
+      "fallback_reason": null,
+      "dropped_fields": null,
+      "problems": [],
+      "passed": true
+    },
+    {
+      "case": "denied: other purpose granted, marketing denied",
+      "expect": "blocked",
+      "lead_id": "89b519a6-06cd-4be8-8afe-226dbc944a03",
+      "name": "Arjun Das",
+      "outcome": "no_action_consent_blocked",
+      "status": "blocked",
+      "consent_check": "blocked",
+      "audit_result": "blocked",
+      "reason": "Consent denied for purpose 'marketing'",
+      "generator": null,
+      "subject": null,
+      "body": null,
+      "fallback_reason": null,
+      "dropped_fields": null,
+      "problems": [],
+      "passed": true
+    },
+    {
+      "case": "missing: no consent record at all",
+      "expect": "blocked",
+      "lead_id": "2f6aa54c-2794-4713-8455-2b85d32c9afb",
+      "name": "Sneha Kulkarni",
+      "outcome": "no_action_consent_blocked",
+      "status": "blocked",
+      "consent_check": "blocked",
+      "audit_result": "blocked",
+      "reason": "No consent record exists for purpose 'marketing'",
+      "generator": null,
+      "subject": null,
+      "body": null,
+      "fallback_reason": null,
+      "dropped_fields": null,
+      "problems": [],
+      "passed": true
+    }
+  ]
+}
