@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+phonenumbers
+pytest
+httpx
+websockets

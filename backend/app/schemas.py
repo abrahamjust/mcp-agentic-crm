@@ -1,0 +1,118 @@
+"""
+Pydantic schemas: the request/response contracts of the REST API.
+
+These are also the shapes Role 1 wraps as MCP tool input/output schemas,
+so they are kept deliberately small and explicit.
+"""
+from datetime import datetime
+from typing import Any, Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.models import CompanySize, Seniority, LeadSource, Bucket, PipelineStage
+
+# Interaction vocabulary (plain strings in the DB, validated here)
+InteractionStatus = Literal[
+    "pending_approval", "approved", "rejected", "executed", "blocked", "skipped"
+]
+ConsentCheckResult = Literal["passed", "blocked", "error"]
+
+
+# ---------------------------------------------------------------------------
+# Leads
+# ---------------------------------------------------------------------------
+
+
+class LeadCreate(BaseModel):
+    """Raw, UN-standardized form input. Types are deliberately loose
+    (company_size, source are free strings); standardize_lead_input()
+    coerces them before anything reaches the DB."""
+
+    name: str
+    email: str
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    company_size: Optional[str] = None  # "50-100", "~75", ...
+    job_title: Optional[str] = None
+    source: Optional[str] = None  # "fb ad", "Referral", ...
+    product_interest: Optional[str] = None
+    notes: Optional[str] = None
+    consent: Optional[dict[str, bool]] = None  # {"marketing": true, ...}
+
+
+class LeadOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    email: str
+    phone: Optional[str]
+    company: Optional[str]
+    company_size: CompanySize
+    job_title: Optional[str]
+    seniority: Seniority
+    source: LeadSource
+    product_interest: Optional[str]
+    notes: Optional[str]
+    consent: list[dict[str, Any]]
+    pipeline_stage: PipelineStage
+    created_at: datetime
+    last_activity_at: datetime
+    lead_score: Optional[float]
+    bucket: Bucket
+    top_factors: Optional[list[str]]
+    scored_at: Optional[datetime]
+    model_version: Optional[str]
+
+
+class LeadScoreUpdate(BaseModel):
+    """Sent by Agent A (Role 3) via PATCH /leads/{id}/score."""
+
+    score: float = Field(ge=0.0, le=1.0)
+    bucket: Bucket
+    top_factors: list[str] = Field(default_factory=list)
+    model_version: str = "v1"
+
+
+class LeadStageUpdate(BaseModel):
+    """Sent by Agent B (Role 4) via PATCH /leads/{id}/stage."""
+
+    pipeline_stage: PipelineStage
+
+
+class LeadConsentUpdate(BaseModel):
+    """PATCH /leads/{id}/consent. Only the purposes listed are changed;
+    other purposes keep their existing record."""
+
+    consent: dict[str, bool] = Field(min_length=1)
+
+
+# ---------------------------------------------------------------------------
+# Interactions (agent actions: the `log_interaction` tool)
+# ---------------------------------------------------------------------------
+
+
+class InteractionCreate(BaseModel):
+    actor: str = "agent_b"
+    action_type: str = Field(min_length=1)
+    payload: dict[str, Any] = Field(default_factory=dict)
+    status: InteractionStatus = "pending_approval"
+    consent_check: Optional[ConsentCheckResult] = None
+
+
+class InteractionStatusUpdate(BaseModel):
+    status: InteractionStatus
+
+
+class InteractionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    lead_id: str
+    actor: str
+    action_type: str
+    payload: dict[str, Any]
+    status: str
+    consent_check: Optional[str]
+    created_at: datetime
+    updated_at: datetime

@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Local databases and secrets
+*.db
+.env
+
+# Frontend (when Role 6 adds it)
+node_modules/
+dist/
