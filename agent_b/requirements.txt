@@ -1,0 +1,10 @@
+# Agent B (Role 4). The LLM runs locally in Ollama (https://ollama.com):
+#   ollama pull llama3.2:3b
+mcp==2.3.0
+httpx==0.28.1
+websockets
+pydantic>=2.11
+pytest
+anyio
+# the harness and the integration tests run the backend in-process
+-r ../backend/requirements.txt
