@@ -25,7 +25,6 @@ from lead_scoring.features import (
     NUMERIC,
     UNKNOWN,
     describe_value,
-    model_inputs,
     to_frame,
 )
 from lead_scoring.thresholds import Thresholds
@@ -108,10 +107,6 @@ class LeadScorer:
         return results
 
     def _top_factors(self, lead: Mapping[str, Any], inputs, effects: np.ndarray) -> list[str]:
-        occupation_inferred = (
-            model_inputs({"occupation": lead.get("occupation")})["occupation"] == UNKNOWN
-            and inputs["occupation"] != UNKNOWN
-        )
         ranked = []
         for j, feature in enumerate(FEATURES):
             value = inputs[feature]
@@ -128,8 +123,6 @@ class LeadScorer:
         factors = []
         for _, j, feature, value in ranked[: self.top_k]:
             shown = describe_value(feature, value)
-            if feature == "occupation" and occupation_inferred:
-                shown += " (from job title)"
             direction = "raises score" if effects[j] > 0 else "lowers score"
             factors.append(f"{LABELS[feature]}: {shown} ({direction})")
         return factors

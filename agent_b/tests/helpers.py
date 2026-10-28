@@ -22,7 +22,7 @@ async def create_lead(http: httpx.AsyncClient, **fields) -> dict:
 
 async def create_hot_lead(http: httpx.AsyncClient, bucket: str = "Hot", **fields) -> dict:
     """A lead as Agent A would leave it."""
-    fields.setdefault("company", "Acme Learning")
+    fields.setdefault("occupation", "Working Professional")
     fields.setdefault("product_interest", "Data Science certification")
     lead = await create_lead(http, **fields)
     response = await http.patch(f"/leads/{lead['id']}/score", json={

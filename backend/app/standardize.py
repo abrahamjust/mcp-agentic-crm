@@ -11,7 +11,7 @@ from typing import Any
 
 import phonenumbers
 
-from app.models import CompanySize, LeadOrigin, LeadSource, Occupation, Seniority
+from app.models import LeadOrigin, LeadSource, Occupation
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -53,63 +53,6 @@ def normalize_name(raw: str | None) -> str | None:
         return None
     collapsed = re.sub(r"\s+", " ", raw.strip())
     return collapsed.title() if collapsed else None
-
-
-_COMPANY_SIZE_BUCKETS = [
-    (1, 10, CompanySize.S_1_10),
-    (11, 50, CompanySize.S_11_50),
-    (51, 200, CompanySize.S_51_200),
-    (201, 1000, CompanySize.S_201_1000),
-]
-
-
-def normalize_company_size(raw: str | int | None) -> CompanySize:
-    """'50-100', '~75', 75, blank -> one of the fixed CompanySize buckets."""
-    if raw is None or raw == "":
-        return CompanySize.UNKNOWN
-
-    if isinstance(raw, int):
-        numbers = [raw]
-    else:
-        numbers = [int(n) for n in re.findall(r"\d+", str(raw))]
-
-    if not numbers:
-        return CompanySize.UNKNOWN
-
-    # a range like "50-100" uses its midpoint; "~75" just uses 75
-    estimate = sum(numbers) / len(numbers)
-
-    if estimate >= 1000:
-        return CompanySize.S_1000_PLUS
-    for low, high, bucket in _COMPANY_SIZE_BUCKETS:
-        if low <= estimate <= high:
-            return bucket
-    return CompanySize.UNKNOWN
-
-
-_SENIORITY_KEYWORDS = [
-    (Seniority.C_LEVEL, ["ceo", "cto", "cfo", "coo", "cmo", "chief", "founder"]),
-    (Seniority.DIRECTOR, ["director", "vp", "vice president", "head of"]),
-    (Seniority.MANAGER, ["manager", "lead", "team lead"]),
-    (Seniority.IC, ["engineer", "developer", "analyst", "associate", "intern", "executive"]),
-]
-
-
-def title_to_seniority(raw_title: str | None) -> Seniority:
-    """Free-text job title -> a fixed seniority tier via keyword lookup.
-
-    Uses word-boundary matching, not a plain substring test: "cto" (a
-    C-level keyword) is hiding inside "dire-CTO-r", so a substring check
-    would tag every "Director" as C-level.
-    """
-    if not raw_title:
-        return Seniority.UNKNOWN
-    lowered = raw_title.lower()
-    for tier, keywords in _SENIORITY_KEYWORDS:
-        for kw in keywords:
-            if re.search(rf"\b{re.escape(kw)}\b", lowered):
-                return tier
-    return Seniority.UNKNOWN
 
 
 _SOURCE_MAP = {
@@ -263,10 +206,6 @@ def standardize_lead_input(raw: dict[str, Any]) -> dict[str, Any]:
         "name": name,
         "email": email,
         "phone": normalize_phone(raw.get("phone")),
-        "company": clean_optional_text(raw.get("company")),
-        "company_size": normalize_company_size(raw.get("company_size")),
-        "job_title": clean_optional_text(raw.get("job_title")),
-        "seniority": title_to_seniority(raw.get("job_title")),
         "source": normalize_source(raw.get("source")),
         "product_interest": clean_optional_text(raw.get("product_interest")),
         "notes": clean_optional_text(raw.get("notes")),

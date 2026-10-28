@@ -72,6 +72,12 @@ Agent A's model uses these. All are optional: a blank one becomes
 `Direct Traffic`, `Olark Chat`, `Reference`, ...). An existing `crm.db` gets
 the new columns added automatically at startup (`add_missing_columns()`).
 
+A lead is an individual learner enquiring about a course, not a company:
+the old B2B fields (`company`, `company_size`, `job_title`, `seniority`)
+were removed. `POST /leads` ignores them if an old client still sends them,
+and `drop_removed_columns()` drops them from an existing `crm.db` at startup
+(needs SQLite 3.35+). `product_interest` holds the course of interest.
+
 Allowed `status` values for an interaction: `pending_approval`, `approved`,
 `rejected`, `executed`, `blocked`, `skipped`. `consent_check`: `passed`,
 `blocked`, `error`.
@@ -126,7 +132,7 @@ backend/
     main.py         routes + WebSocket
     models.py       Lead, Interaction tables
     schemas.py      request/response shapes
-    standardize.py  input cleaning (email, phone, size, seniority, source, consent)
+    standardize.py  input cleaning (email, phone, source, occupation, consent)
     consent.py      purpose-specific consent decision logic (Role 5)
     events.py       WebSocket broadcast
     database.py     SQLite engine / session

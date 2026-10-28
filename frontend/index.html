@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#171719">
     <title>Overview · CRM</title>
     <link rel="stylesheet" href="/assets/app.css?v=10">
-    <script src="/assets/dashboard.js?v=11" defer></script>
+    <script src="/assets/dashboard.js?v=12" defer></script>
   </head>
   <body data-page="overview">
     <div class="app-shell">
@@ -19,7 +19,7 @@
           <a class="nav-link" href="/approvals"><span class="nav-icon">✳</span>Approvals <span id="approval-nav-count" class="nav-count">0</span></a>
           <a class="nav-link" href="/activity"><span class="nav-icon">◷</span>Activity</a>
         </nav>
-        <div class="sidebar-bottom"><a class="nav-link new-lead-link" href="/leads/new"><span class="nav-icon">＋</span>Add a lead</a></div>
+        <div class="sidebar-bottom"><a class="nav-link new-lead-link" href="/leads/new" target="_blank" rel="noopener" title="The form prospective learners fill in"><span class="nav-icon">↗</span>Enquiry form</a></div>
       </aside>
       <main class="main-content">
         <header class="topbar">
@@ -29,7 +29,7 @@
         <div class="page-wrap">
           <section class="page-heading">
             <div><p class="eyebrow">YOUR CRM, AT A GLANCE</p><h1>Good to see you, <span class="heading-accent">Admin</span></h1><p class="page-description">A clear snapshot of your lead pipeline.</p></div>
-            <a class="button button-primary" href="/leads/new"><span aria-hidden="true">＋</span> Add a lead</a>
+            <a class="button button-primary" href="/leads/new" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> Open enquiry form</a>
           </section>
           <div id="toast" class="toast" role="status" hidden></div>
           <div id="page-error" class="page-error" role="alert" hidden><div><strong>Couldn’t load the CRM data.</strong><span id="error-message"></span></div><button id="retry-button" class="button button-small button-outline" type="button">Try again</button></div>

@@ -47,17 +47,9 @@ def test_enum_members_are_unwrapped():
     assert model_inputs({"source": Source.WEBSITE})["source"] == "Website"
 
 
-def test_employed_seniority_fills_missing_occupation():
-    assert model_inputs({"seniority": "Director"})["occupation"] == "Working Professional"
-    assert model_inputs({"seniority": "IC", "occupation": "Unknown"})["occupation"] == "Working Professional"
-
-
-def test_seniority_never_overrides_a_given_occupation():
-    assert model_inputs({"seniority": "Director", "occupation": "Student"})["occupation"] == "Student"
-
-
-def test_unknown_seniority_does_not_fill_occupation():
-    assert model_inputs({"seniority": "Unknown"})["occupation"] == "Unknown"
+def test_missing_occupation_stays_unknown():
+    assert model_inputs({})["occupation"] == "Unknown"
+    assert model_inputs({"occupation": "Student"})["occupation"] == "Student"
 
 
 def test_to_frame_has_exact_columns_and_dtypes():

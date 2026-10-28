@@ -61,6 +61,35 @@ def add_missing_columns() -> list[str]:
     return added
 
 
+# Columns removed from the models. A lead used to be modelled as a B2B
+# company contact; it is now an individual learner, so these went away.
+# company_size / seniority were NOT NULL with only a client-side default,
+# so an old crm.db would reject every new insert until they are dropped.
+REMOVED_COLUMNS = {
+    "leads": ["company", "company_size", "job_title", "seniority"],
+}
+
+
+def drop_removed_columns() -> list[str]:
+    """Drop REMOVED_COLUMNS from an older crm.db that still has them.
+
+    Needs SQLite 3.35+ (ALTER TABLE ... DROP COLUMN). Returns the
+    "table.column" names it dropped; a second call drops nothing.
+    """
+    dropped = []
+    inspector = inspect(engine)
+    with engine.begin() as conn:
+        for table, columns in REMOVED_COLUMNS.items():
+            if not inspector.has_table(table):
+                continue
+            existing = {c["name"] for c in inspector.get_columns(table)}
+            for column in columns:
+                if column in existing:
+                    conn.execute(text(f"ALTER TABLE {table} DROP COLUMN {column}"))
+                    dropped.append(f"{table}.{column}")
+    return dropped
+
+
 def get_db():
     """FastAPI dependency: one DB session per request, always closed."""
     db = SessionLocal()

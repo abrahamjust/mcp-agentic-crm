@@ -2,6 +2,8 @@
 SQLAlchemy ORM models.
 
 leads        -> one row per lead; every field is stored STANDARDIZED.
+                A lead is an individual learner enquiring about a course
+                (the client is an education provider), not a company.
 interactions -> one row per agent action (what Agent B logs through the
                 `log_interaction` MCP tool). Also what lets an agent
                 tell "this Hot lead was already handled" after a restart.
@@ -59,23 +61,6 @@ class UTCDateTime(TypeDecorator):
         return value.replace(tzinfo=timezone.utc)
 
 
-class CompanySize(str, enum.Enum):
-    S_1_10 = "1-10"
-    S_11_50 = "11-50"
-    S_51_200 = "51-200"
-    S_201_1000 = "201-1000"
-    S_1000_PLUS = "1000+"
-    UNKNOWN = "Unknown"
-
-
-class Seniority(str, enum.Enum):
-    C_LEVEL = "C-level"
-    DIRECTOR = "Director"
-    MANAGER = "Manager"
-    IC = "IC"
-    UNKNOWN = "Unknown"
-
-
 class LeadSource(str, enum.Enum):
     WEBSITE = "Website"
     REFERRAL = "Referral"
@@ -131,12 +116,8 @@ class Lead(Base):
     name = Column(String, nullable=False)
     email = Column(String, nullable=False, index=True)
     phone = Column(String, nullable=True)
-    company = Column(String, nullable=True)
-    company_size = Column(Enum(CompanySize), default=CompanySize.UNKNOWN, nullable=False)
-    job_title = Column(String, nullable=True)
-    seniority = Column(Enum(Seniority), default=Seniority.UNKNOWN, nullable=False)
     source = Column(Enum(LeadSource), default=LeadSource.UNKNOWN, nullable=False)
-    product_interest = Column(String, nullable=True)
+    product_interest = Column(String, nullable=True)  # the course / programme asked about
     notes = Column(Text, nullable=True)
 
     # --- scoring inputs for Agent A (all optional; the model handles blanks) ---

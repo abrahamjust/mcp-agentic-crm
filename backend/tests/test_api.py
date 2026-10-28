@@ -24,7 +24,7 @@ def test_frontend_pages_and_assets_are_served(client):
         "/pipeline": "pipeline",
         "/approvals": "Approvals",
         "/activity": "Activity",
-        "/leads/new": "Add a lead",
+        "/leads/new": "Course enquiry",
     }
     stylesheet = client.get("/assets/app.css")
     approvals = client.get("/approvals")
@@ -67,19 +67,17 @@ def test_create_lead_standardizes_and_returns_lead(client):
         name="john   DOE",
         email="John@Gmail.COM ",
         phone="9876543210",
-        company="Acme Corp",
-        company_size="~75",
-        job_title="VP of Sales",
         source="fb ad",
-        product_interest="Enterprise plan",
+        occupation="student",
+        product_interest="Data Science certificate",
         notes="",
         consent={"marketing": True, "analytics": False},
     )
     assert body["name"] == "John Doe"
     assert body["email"] == "john@gmail.com"
     assert body["phone"] == "+919876543210"
-    assert body["company_size"] == "51-200"
-    assert body["seniority"] == "Director"
+    assert body["occupation"] == "Student"
+    assert body["product_interest"] == "Data Science certificate"
     assert body["source"] == "Social"
     assert body["notes"] is None
     assert body["pipeline_stage"] == "New"
@@ -448,7 +446,7 @@ def test_websocket_payload_format_matches_rest(client):
         data = ws.receive_json()["data"]
         assert data["created_at"] == rest["created_at"]
         assert data["bucket"] == "Unscored"
-        assert data["company_size"] == "Unknown"
+        assert data["occupation"] == "Unknown"
 
 
 def test_websocket_lead_scored_event(client):

@@ -32,7 +32,6 @@ class LeadIn(BaseModel):
     lead_origin: Optional[str] = None
     source: Optional[str] = None
     occupation: Optional[str] = None
-    seniority: Optional[str] = None
     total_visits: Optional[float] = Field(None, ge=0)
     time_on_website_sec: Optional[float] = Field(None, ge=0)
     pages_per_visit: Optional[float] = Field(None, ge=0)

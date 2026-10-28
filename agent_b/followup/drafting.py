@@ -12,8 +12,8 @@ are added by code, not written by the model, so every draft opens and
 closes the same way; the model writes only 2-3 short paragraphs, at low
 temperature with a fixed seed, in a JSON schema the server enforces.
 
-Data minimisation: the prompt holds only first name, company, job title and
-product interest. Email address, phone, notes, consent records and Agent
+Data minimisation: the prompt holds only first name, occupation and the
+course of interest (`product_interest`). Email address, phone, notes, consent records and Agent
 A's score and reasons never reach the model, and the score is never put in
 customer-facing text.
 
@@ -127,8 +127,10 @@ def lead_context(lead: dict[str, Any]) -> dict[str, Any]:
     name = _clean(lead.get("name")) or ""
     first = name.split(" ")[0] if name else ""
     ctx: dict[str, Any] = {"first_name": first if first and not unsafe_reason(first) else "there", "dropped": {}}
-    for key in ("company", "job_title", "product_interest"):
+    for key in ("occupation", "product_interest"):
         value = _clean(lead.get(key))
+        if key == "occupation" and value == "Unknown":  # the backend's "not provided"
+            value = None
         reason = unsafe_reason(value) if value else None
         if reason:
             ctx["dropped"][key] = reason
@@ -195,10 +197,9 @@ class TemplateDrafter:
     async def draft(self, lead: dict[str, Any], *, reason: str | None = None) -> EmailDraft:
         ctx = lead_context(lead)
         interest = ctx["product_interest"] or f"{self.sender.organisation}'s programmes"
-        at_company = f" at {ctx['company']}" if ctx["company"] else ""
         paragraphs = [
             f"Thank you for your interest in {interest}. I'm following up personally to make sure "
-            f"you have everything you need to decide whether it is the right fit for you{at_company}.",
+            f"you have everything you need to decide whether it is the right fit for you.",
             "I'd be glad to walk you through how the programme works, answer any questions, and "
             "suggest the best next step for your goals.",
             "Would you have 15 minutes for a short call this week? Just reply with a time that suits you.",
@@ -216,14 +217,14 @@ class TemplateDrafter:
 
 
 _SYSTEM_PROMPT = """\
-You write the middle of a short follow-up email from the {org} sales team to a prospect who \
-filled in an enquiry form on our website. This is our first email to them: nobody has spoken \
+You write the middle of a short follow-up email from the {org} admissions team to a prospective learner who \
+filled in a course enquiry form on our website. This is our first email to them: nobody has spoken \
 to them yet. A greeting and a sign-off are added automatically: do not write them.
 
 Rules:
 - 2 or 3 short paragraphs, 60-120 words in total, warm and professional, plain text.
-- Start by thanking them for their enquiry. Name their product interest and their company if given.
-- If a job title is given, say in one sentence why the programme is relevant to that role.
+- Start by thanking them for their enquiry. Name the course they asked about if given.
+- If their current occupation is given, say in one sentence why the course suits someone in that situation.
 - End with one clear call to action: a 15-minute call this week; ask them to reply with a time.
 - Never invent prices, discounts, offers, dates, times, links, phone numbers, statistics,
   earlier conversations or any other facts.
@@ -286,11 +287,11 @@ class OllamaDrafter:
     def _user_prompt(self, ctx: dict[str, Any]) -> str:
         # missing fields are left out: "(not given)" invites the model to fill a gap with a placeholder
         lines = [f"- First name: {ctx['first_name']}"]
-        for label, key in (("Company", "company"), ("Job title", "job_title"), ("Product interest", "product_interest")):
+        for label, key in (("Current occupation", "occupation"), ("Course of interest", "product_interest")):
             if ctx[key]:
                 lines.append(f"- {label}: {ctx[key]}")
         if len(lines) == 1:
-            lines.append("- No company, role or product interest was given: keep the email general.")
+            lines.append("- No occupation or course of interest was given: keep the email general.")
         return "Lead details:\n" + "\n".join(lines)
 
     async def _generate(self, ctx: dict[str, Any], *, seed: int) -> tuple[str, list[str]]:

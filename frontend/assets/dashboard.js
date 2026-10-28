@@ -82,13 +82,12 @@ function leadDetailMarkup(lead) {
     ? `<div class="lead-detail-factors"><strong>Scoring factors</strong><ul>${lead.top_factors.map((factor) => `<li>${escapeHtml(factor)}</li>`).join("")}</ul></div>`
     : "";
   return `<div class="lead-detail-heading"><strong>${escapeHtml(lead.name || "Unnamed lead")}</strong><span class="bucket-badge ${bucketClass(lead.bucket)}">${escapeHtml(lead.bucket || "Unscored")}</span></div>
-    <div class="lead-detail-section"><span class="lead-detail-label">CONTACT &amp; COMPANY</span><dl>
-      ${leadDetailRow("Email", lead.email)}${leadDetailRow("Phone", lead.phone)}${leadDetailRow("Company", lead.company)}
-      ${leadDetailRow("Company size", lead.company_size)}${leadDetailRow("Job title", lead.job_title)}${leadDetailRow("Seniority", lead.seniority)}
+    <div class="lead-detail-section"><span class="lead-detail-label">CONTACT</span><dl>
+      ${leadDetailRow("Email", lead.email)}${leadDetailRow("Phone", lead.phone)}
     </dl></div>
-    <div class="lead-detail-section"><span class="lead-detail-label">LEAD PROFILE</span><dl>
-      ${leadDetailRow("Product interest", lead.product_interest)}${leadDetailRow("Source", lead.source)}
-      ${leadDetailRow("Lead origin", lead.lead_origin)}${leadDetailRow("Occupation", lead.occupation)}
+    <div class="lead-detail-section"><span class="lead-detail-label">LEARNER PROFILE</span><dl>
+      ${leadDetailRow("Course of interest", lead.product_interest)}${leadDetailRow("Occupation", lead.occupation)}
+      ${leadDetailRow("Source", lead.source)}${leadDetailRow("Lead origin", lead.lead_origin)}
       ${leadDetailRow("Notes", lead.notes)}
     </dl></div>
     <div class="lead-detail-section"><span class="lead-detail-label">ENGAGEMENT &amp; PIPELINE</span><dl>
@@ -205,7 +204,8 @@ function connectLeadPreviews() {
 
 function leadCard(lead) {
   const name = escapeHtml(lead.name || "Unnamed lead");
-  const company = escapeHtml(lead.company || "Company not provided");
+  const course = escapeHtml(lead.product_interest || "Course not specified");
+  const occupation = lead.occupation && lead.occupation !== "Unknown" ? escapeHtml(lead.occupation) : "";
   const email = escapeHtml(lead.email);
   const bucket = escapeHtml(lead.bucket || "Unscored");
   const score = escapeHtml(scoreLabel(lead));
@@ -221,8 +221,8 @@ function leadCard(lead) {
   return `<article class="lead-card">
     <div class="lead-card-top"><div class="lead-ident">${leadHoverTarget(lead, `<span class="lead-name" title="${name}">${name}</span><span class="lead-email" title="${email}">${email}</span>`)}</div>
       <span class="bucket-badge ${bucketClass(lead.bucket)}">${bucket}</span></div>
-    <div class="lead-company" title="${company}">${company}</div>
-    <div class="lead-meta"><span class="lead-score">${score}</span>${lead.job_title ? `<span>${escapeHtml(lead.job_title)}</span>` : ""}
+    <div class="lead-company" title="${course}">${course}</div>
+    <div class="lead-meta"><span class="lead-score">${score}</span>${occupation ? `<span>${occupation}</span>` : ""}
       <span class="consent-badge ${consent.className}">${consent.label}</span></div>
     ${factorsMarkup}
     <div class="lead-card-bottom"><span class="lead-source">${source}</span>
@@ -525,7 +525,7 @@ function renderApprovals() {
     const email = payload.email || {};
     const reviewer = payload.reviewer_context || {};
     const factors = (reviewer.top_factors || []).slice(0, 3).map(escapeHtml).join(" · ");
-    const context = [lead?.company, reviewer.bucket, reviewer.lead_score == null ? null : `${Math.round(reviewer.lead_score * 100)}% score`]
+    const context = [lead?.product_interest, reviewer.bucket, reviewer.lead_score == null ? null : `${Math.round(reviewer.lead_score * 100)}% score`]
       .filter(Boolean).map(escapeHtml).join(" · ");
     return `<article class="approval-card" data-interaction-id="${escapeHtml(item.id)}">
       <div class="approval-card-head"><div>${leadHoverTarget(lead, `<span class="approval-person">${escapeHtml(lead?.name || "Lead record")}</span>`)}
@@ -695,7 +695,16 @@ function connectLiveUpdates() {
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
   const socket = new WebSocket(`${protocol}//${location.host}/ws`);
   socket.addEventListener("open", () => setConnection(true, "Live"));
-  socket.addEventListener("message", () => {
+  socket.addEventListener("message", (event) => {
+    let message = {};
+    try {
+      message = JSON.parse(event.data);
+    } catch {
+      // Not JSON: still refresh below.
+    }
+    if (message.event === "lead_created") {
+      showToast(`New enquiry from ${message.data?.name || "a prospective learner"}.`);
+    }
     clearTimeout(connectLiveUpdates.refreshTimer);
     connectLiveUpdates.refreshTimer = setTimeout(loadDashboard, 180);
   });
@@ -725,10 +734,6 @@ if (page !== "lead-form") {
     if (filter) filter.value = initialBucket;
   }
   connectLeadPreviews();
-  if (new URLSearchParams(location.search).get("created") === "1") {
-    showToast("Lead saved. Scoring and follow-up will run when the agent workers are active.");
-    history.replaceState(null, "", "/");
-  }
 
   loadDashboard();
   connectLiveUpdates();

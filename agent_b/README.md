@@ -155,7 +155,7 @@ For a missing lead, raise `ToolError("Lead <id> not found")`.
   attempts so it can't block newer leads.
 - **Consistent drafts.** Code writes the greeting and sign-off. The model writes only 2–3 paragraphs, in a
   server-enforced JSON schema, at temperature 0.2 with a fixed seed.
-- **Data minimisation.** The LLM sees only first name, company, job title and product interest. It never
+- **Data minimisation.** The LLM sees only first name, occupation and course of interest. It never
   sees the email address, phone number, notes, consent records or the score. The score and
   `top_factors` go only into `reviewer_context`, never into customer-facing text.
 - **Untrusted form input.** Before a draft is stored:

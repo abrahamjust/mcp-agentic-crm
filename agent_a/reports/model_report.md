@@ -80,5 +80,4 @@ Each score comes with its top 3 factors, from exact per-lead contributions (Tree
 - Missing numeric inputs are imputed with the training median and are not cited in top_factors.
 - A missing lead origin or source is filled with the most common training value (neutral) and is not cited in top_factors; a missing occupation is a learned category ('not provided').
 - Categories never seen in training (e.g. source 'Event') are encoded as an infrequent category, never an error.
-- If occupation is missing but the job title maps to a seniority level, occupation is taken as 'Working Professional' (shown as '(from job title)').
 - Consent is not a model input; the consent layer decides what may be done with a lead.

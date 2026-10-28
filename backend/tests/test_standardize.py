@@ -1,10 +1,9 @@
 """Unit tests for the standardization layer."""
 import pytest
 
-from app.models import CompanySize, LeadOrigin, LeadSource, Occupation, Seniority
+from app.models import LeadOrigin, LeadSource, Occupation
 from app.standardize import (
     clean_optional_text,
-    normalize_company_size,
     normalize_consent,
     normalize_count,
     normalize_email,
@@ -15,7 +14,6 @@ from app.standardize import (
     normalize_rate,
     normalize_source,
     standardize_lead_input,
-    title_to_seniority,
 )
 
 
@@ -41,39 +39,6 @@ def test_normalize_name():
     assert normalize_name("john   DOE") == "John Doe"
     assert normalize_name(None) is None
     assert normalize_name("   ") is None
-
-
-def test_normalize_company_size_range():
-    assert normalize_company_size("50-100") == CompanySize.S_51_200
-
-
-def test_normalize_company_size_approx():
-    assert normalize_company_size("~75") == CompanySize.S_51_200
-
-
-def test_normalize_company_size_blank():
-    assert normalize_company_size("") == CompanySize.UNKNOWN
-    assert normalize_company_size(None) == CompanySize.UNKNOWN
-
-
-def test_normalize_company_size_large():
-    assert normalize_company_size("5000") == CompanySize.S_1000_PLUS
-
-
-def test_title_to_seniority():
-    assert title_to_seniority("VP of Sales") == Seniority.DIRECTOR
-    assert title_to_seniority("Chief Technology Officer") == Seniority.C_LEVEL
-    assert title_to_seniority("Software Engineer") == Seniority.IC
-    assert title_to_seniority("Team Lead") == Seniority.MANAGER
-    assert title_to_seniority(None) == Seniority.UNKNOWN
-    assert title_to_seniority("Astronaut") == Seniority.UNKNOWN
-
-
-def test_title_to_seniority_no_false_positive_substring_match():
-    """Regression: 'cto' (C-level) is a substring of 'director'; word-boundary
-    matching must keep directors out of the C-level tier."""
-    assert title_to_seniority("Director of Engineering") == Seniority.DIRECTOR
-    assert title_to_seniority("Director") == Seniority.DIRECTOR
 
 
 def test_normalize_source_variants():
@@ -150,11 +115,8 @@ def test_standardize_lead_input_end_to_end():
         "name": "john   DOE",
         "email": "John@Gmail.COM ",
         "phone": "9876543210",
-        "company": "  ",
-        "company_size": "~75",
-        "job_title": "VP of Sales",
         "source": "fb ad",
-        "product_interest": "Enterprise plan",
+        "product_interest": "  Data Science certificate ",
         "notes": "N/A",
         "consent": {"marketing": True},
     }
@@ -162,9 +124,7 @@ def test_standardize_lead_input_end_to_end():
     assert clean["name"] == "John Doe"
     assert clean["email"] == "john@gmail.com"
     assert clean["phone"] == "+919876543210"
-    assert clean["company"] is None
-    assert clean["company_size"] == CompanySize.S_51_200
-    assert clean["seniority"] == Seniority.DIRECTOR
+    assert clean["product_interest"] == "Data Science certificate"
     assert clean["source"] == LeadSource.SOCIAL
     assert clean["notes"] is None
     assert clean["consent"][0]["purpose"] == "marketing"

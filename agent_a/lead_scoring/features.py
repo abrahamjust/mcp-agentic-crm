@@ -43,10 +43,6 @@ LABELS = {
     "pages_per_visit": "Pages per visit",
 }
 
-# Seniority values that imply the lead is employed (backend Seniority enum).
-_EMPLOYED_SENIORITY = {"C-level", "Director", "Manager", "IC"}
-
-
 def _category(value: Any) -> str:
     if value is None:
         return UNKNOWN
@@ -70,17 +66,9 @@ def _number(value: Any) -> float:
 
 
 def model_inputs(lead: Mapping[str, Any]) -> dict[str, Any]:
-    """One lead record (backend LeadOut JSON or a training row) -> model inputs.
-
-    Serve-time rule: a B2B lead whose job title maps to a known seniority but
-    whose occupation was not captured is employed, so occupation becomes
-    "Working Professional" instead of "Unknown". Training rows carry no
-    seniority, so the rule never fires there.
-    """
+    """One lead record (backend LeadOut JSON or a training row) -> model inputs."""
     row = {name: _category(lead.get(name)) for name in CATEGORICAL}
     row.update({name: _number(lead.get(name)) for name in NUMERIC})
-    if row["occupation"] == UNKNOWN and _category(lead.get("seniority")) in _EMPLOYED_SENIORITY:
-        row["occupation"] = "Working Professional"
     return row
 
 

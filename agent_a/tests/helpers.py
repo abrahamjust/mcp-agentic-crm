@@ -5,8 +5,7 @@ import httpx
 
 # A realistic form submission with every scoring input filled in.
 FULL_FORM = {
-    "company": "Acme Learning",
-    "job_title": "Engineering Manager",
+    "product_interest": "Data Science certificate",
     "source": "Reference",
     "lead_origin": "Lead Add Form",
     "occupation": "Working Professional",

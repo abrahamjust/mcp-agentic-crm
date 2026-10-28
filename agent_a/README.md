@@ -86,7 +86,7 @@ separate commit for Role 2 to review). A blank field never blocks scoring.
 |---|---|---|
 | `lead_origin` | Landing Page, API, Lead Add Form, Lead Import | how the lead entered the CRM |
 | `source` | Website/Referral/Social/... or Google, Organic Search, Reference, ... | existing field |
-| `occupation` | Working Professional, Business Owner, Student, Unemployed, Homemaker, Other | if blank but the job title gives a seniority, treated as Working Professional |
+| `occupation` | Working Professional, Business Owner, Student, Unemployed, Homemaker, Other | blank is its own learned category ("not provided") |
 | `total_visits`, `time_on_website_sec`, `pages_per_visit` | numbers ≥ 0 | web-analytics engagement |
 
 Consent is **not** a model input: scoring stays consent-agnostic and Role 5's

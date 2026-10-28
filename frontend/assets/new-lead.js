@@ -1,8 +1,8 @@
 const form = document.querySelector("#lead-form");
 const errorBox = document.querySelector("#form-error");
+const successBox = document.querySelector("#form-success");
 const submitButton = document.querySelector("#submit-button");
-const optionalTextFields = ["phone", "company", "job_title", "product_interest", "notes"];
-const optionalNumberFields = ["total_visits", "time_on_website_sec", "pages_per_visit"];
+const optionalTextFields = ["phone", "product_interest", "notes"];
 
 function readFormValue(name) {
   return form.elements.namedItem(name).value.trim();
@@ -14,12 +14,14 @@ form.addEventListener("submit", async (event) => {
 
   if (!form.reportValidity()) return;
 
+  // Filled in by the prospective learner, so it is a website enquiry, not a
+  // staff entry. Visits / time on site are left out: the client site's
+  // tracking script would supply them once the form is embedded there.
   const body = {
     name: readFormValue("name"),
     email: readFormValue("email"),
-    company_size: readFormValue("company_size") || null,
     source: readFormValue("source") || null,
-    lead_origin: "Lead Add Form",
+    lead_origin: "Landing Page Submission",
     occupation: readFormValue("occupation") || null,
     consent: { marketing: form.elements.namedItem("marketing_consent").checked },
   };
@@ -27,13 +29,9 @@ form.addEventListener("submit", async (event) => {
   optionalTextFields.forEach((field) => {
     body[field] = readFormValue(field) || null;
   });
-  optionalNumberFields.forEach((field) => {
-    const value = readFormValue(field);
-    body[field] = value === "" ? null : Number(value);
-  });
 
   submitButton.disabled = true;
-  submitButton.querySelector("span").textContent = "Saving lead…";
+  submitButton.querySelector("span").textContent = "Sending…";
   try {
     const response = await fetch("/leads", {
       method: "POST",
@@ -51,11 +49,13 @@ form.addEventListener("submit", async (event) => {
       throw new Error(message);
     }
     await response.json();
-    location.assign("/?created=1");
+    form.hidden = true;
+    successBox.hidden = false;
+    successBox.scrollIntoView({ block: "nearest" });
   } catch (error) {
-    errorBox.textContent = `The lead could not be saved: ${error.message}`;
+    errorBox.textContent = `Your enquiry could not be sent: ${error.message}`;
     errorBox.hidden = false;
     submitButton.disabled = false;
-    submitButton.querySelector("span").textContent = "Save lead to pipeline";
+    submitButton.querySelector("span").textContent = "Send enquiry";
   }
 });

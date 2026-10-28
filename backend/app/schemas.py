@@ -11,12 +11,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.models import (
     Bucket,
-    CompanySize,
     LeadOrigin,
     LeadSource,
     Occupation,
     PipelineStage,
-    Seniority,
 )
 
 # Interaction vocabulary (plain strings in the DB, validated here)
@@ -32,18 +30,16 @@ ConsentCheckResult = Literal["passed", "blocked", "error"]
 
 
 class LeadCreate(BaseModel):
-    """Raw, UN-standardized form input. Types are deliberately loose
-    (company_size, source are free strings); standardize_lead_input()
-    coerces them before anything reaches the DB."""
+    """Raw, UN-standardized enquiry-form input from a prospective learner.
+    Types are deliberately loose (source, occupation are free strings);
+    standardize_lead_input() coerces them before anything reaches the DB.
+    Unknown keys (e.g. a B2B `company` field from an old client) are ignored."""
 
     name: str
     email: str
     phone: Optional[str] = None
-    company: Optional[str] = None
-    company_size: Optional[str] = None  # "50-100", "~75", ...
-    job_title: Optional[str] = None
     source: Optional[str] = None  # "fb ad", "Referral", ...
-    product_interest: Optional[str] = None
+    product_interest: Optional[str] = None  # course of interest, e.g. "Data Science"
     notes: Optional[str] = None
     consent: Optional[dict[str, bool]] = None  # {"marketing": true, ...}
 
@@ -62,10 +58,6 @@ class LeadOut(BaseModel):
     name: str
     email: str
     phone: Optional[str]
-    company: Optional[str]
-    company_size: CompanySize
-    job_title: Optional[str]
-    seniority: Seniority
     source: LeadSource
     product_interest: Optional[str]
     notes: Optional[str]

@@ -36,7 +36,7 @@ async def test_harness_catches_a_wrong_outcome(backend_app, template):
 
 def test_cli_draft_with_template(tmp_path, capsys):
     lead = tmp_path / "lead.json"
-    lead.write_text(json.dumps({"name": "Karthik Raman", "email": "k@example.com", "company": "BrightPath"}))
+    lead.write_text(json.dumps({"name": "Karthik Raman", "email": "k@example.com", "occupation": "Business Owner"}))
     assert main(["draft", str(lead), "--llm", "template"]) == 0
     out = json.loads(capsys.readouterr().out)
     assert out["generator"] == "template" and out["body"].startswith("Hi Karthik,")

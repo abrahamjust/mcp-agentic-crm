@@ -450,8 +450,6 @@ def train(
             "not cited in top_factors; a missing occupation is a learned category ('not provided').",
             "Categories never seen in training (e.g. source 'Event') are encoded as an infrequent category, "
             "never an error.",
-            "If occupation is missing but the job title maps to a seniority level, occupation is taken as "
-            "'Working Professional' (shown as '(from job title)').",
             "Consent is not a model input; the consent layer decides what may be done with a lead.",
         ],
         "trained_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

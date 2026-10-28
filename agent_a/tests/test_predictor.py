@@ -67,17 +67,11 @@ def test_imputed_values_are_never_cited(scorer):
         assert absent not in joined
 
 
-def test_occupation_inferred_from_job_title_is_labelled(scorer):
-    result = scorer.score({"seniority": "Director", "occupation": "Unknown", "source": "Website"})
-    assert any("(from job title)" in f for f in result.top_factors)
-
-
 def test_full_backend_lead_record_is_accepted(scorer):
     """A LeadOut JSON from GET /leads, unrelated fields and all."""
     lead = {
-        "id": "abc", "name": "Priya", "email": "priya@example.com", "phone": None, "company": "Acme",
-        "company_size": "51-200", "job_title": "VP Sales", "seniority": "Director", "source": "Event",
-        "product_interest": "Course", "notes": None, "lead_origin": "Unknown", "occupation": "Unknown",
+        "id": "abc", "name": "Priya", "email": "priya@example.com", "phone": None, "source": "Event",
+        "product_interest": "Data Science certificate", "notes": None, "lead_origin": "Unknown", "occupation": "Unknown",
         "total_visits": None, "time_on_website_sec": None, "pages_per_visit": None,
         "consent": [{"purpose": "marketing", "granted": True, "timestamp": "2026-10-27T10:00:00+00:00"}],
         "pipeline_stage": "New", "created_at": "2026-10-27T10:00:00Z", "last_activity_at": "2026-10-27T10:00:00Z",
