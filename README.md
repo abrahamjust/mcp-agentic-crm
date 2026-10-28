@@ -82,16 +82,22 @@ Agent B connects to the backend at `http://127.0.0.1:8000`.
 | Lead pipeline | `/pipeline` |
 | Follow-up approvals | `/approvals` |
 | Agent activity | `/activity` |
-| Add a lead | `/leads/new` |
+| Course enquiry form (public) | `/leads/new` |
 | API documentation | `/docs` |
 
-Use the **Add a lead** form after the workers are running. Agent A scores new
-leads; Agent B only drafts follow-ups for Hot leads with marketing consent.
+The course enquiry form is the page a prospective learner fills in; it would
+be embedded on the education provider's website, and is hosted by the CRM for
+now. Open it from **Enquiry form** in the dashboard sidebar (it opens in a new
+tab) after the workers are running, and submit an enquiry: it appears on the
+dashboard straight away. Agent A scores new leads; Agent B only drafts
+follow-ups for Hot leads with marketing consent.
 Drafts appear on the Approvals page. Opening and approving a draft opens a
 prefilled email in your default mail app and records approval in the CRM, but
 does not send the email. Review and send it manually from your mail app.
 
-The SQLite database is created at `backend/app/crm.db` by default. To stop a
+The SQLite database is created at `backend/crm.db` by default. An older
+database is upgraded automatically at startup (new columns added, the removed
+company/job-title columns dropped). To stop a
 component, press `Ctrl+C` in its terminal.
 
 ## Run tests

@@ -20,7 +20,7 @@ uvicorn app.main:app --reload --port 8000
   in-process, so extra workers would not see each other's connections.
 - The dashboard is served at http://127.0.0.1:8000. Its pages are
   `/` (overview), `/pipeline`, `/approvals`, `/activity`, and `/leads/new`
-  (lead form). No separate frontend server is required.
+  (public course enquiry form). No separate frontend server is required.
 - To process leads end to end, also start Agent A and Agent B using the
   commands in [Agent A's guide](../agent_a/README.md) and
   [Agent B's guide](../agent_b/README.md). A lead remains Unscored until
