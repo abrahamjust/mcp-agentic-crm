@@ -140,3 +140,6 @@ backend/
   tests/            standardization, REST, WebSocket, DB upgrade
   requirements.txt
 ```
+
+
+With this the project documentation md is over.
